@@ -62,27 +62,33 @@
                     <div class="col-md-3 col-lg-offset-0"> 
                         <h3>Opties</h3>
                         <h4>Cliënten</h4>
-                        <a href="#"><p> Aanmaken Cliënt</p></a>
-                        <a href="#"><p> Bewerken Cliënt</p></a>
-                        <a href="#"><p> Verwijderen Cliënt</p></a>
+
+           
+
+                        <div class="col-md-1"></div><a href="#"><p>Aanmaken Cliënt</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Bewerken Cliënt</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Cliënt</p></a>
                         <h4>Vragenlijsten</h4>
-                        <a href="AanmakenVragenlijst.html"><p>- Aanmaken Vragenlijst</p></a>
-                        <a href="#"><p> Bewerken Vragenlijst</p></a>
-                        <a href="#"><p> Verwijderen Vragenlijst</p></a>
+                        <div class="col-md-1"></div><a href="AanmakenVragenlijst.html"><p>Aanmaken Vragenlijst</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Bewerken Vragenlijst</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Vragenlijst</p></a>
                         <h4>Naasten</h4>
-                        <a href="#"><p> Aanmaken Naasten</p></a>
-                        <a href="#"><p> Bewerken Naasten</p></a>
-                        <a href="#"><p> Verwijderen Naasten</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Aanmaken Naasten</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Bewerken Naasten</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Naasten</p></a>
                         <h4>Therapeuten</h4>
-                        <a href="#"><p> Aanmaken Therapeut</p></a>
-                        <a href="#"><p> Bewerken Therapeut</p></a>
-                        <a href="#"><p> Verwijderen Therapeut</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Aanmaken Therapeut</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Bewerken Therapeut</p></a>
+                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Therapeut</p></a>
+
                     </div>
 
                     <div class="col-md-9 col-md-offset-0 blue-bg">
                         <h3> Aanmaken nieuwe Cliënt</h3>
+                        
                         <form class="form-horizontal">
                             <fieldset>
+                            <h5>Algemeen</h5>
                                 <div class="form-group">
                                     <label for="inputNaam" class="col-lg-2 control-label">Naam</label>
                                     <div class="col-lg-10">
@@ -90,15 +96,27 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputANaam" class="col-lg-2 control-label">Achternaam</label>
+                                    <label for="inputANaam" class="col-lg-2 control-label">Adres</label>
                                     <div class="col-lg-10">
-                                        <input type="text" class="form-control" id="inputAchterNaam" placeholder="Achternaam">
+                                        <input type="text" class="form-control" id="inputAdres" placeholder="Adres">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="inputPassword" class="col-lg-2 control-label">Geboortedatum</label>
+                                    <label for="inputWoonplaats" class="col-lg-2 control-label">Woonplaats</label>
                                     <div class="col-lg-10">
-                                        <input type="date" class="form-control" id="inputBDay" placeholder="Geboortedatum">
+                                        <input type="text" class="form-control" id="inputWoonplaats" placeholder="Woonplaats">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputTelVast" class="col-lg-2 control-label">Telefoonnummer vast </label>
+                                    <div class="col-lg-10">
+                                        <input type="text" class="form-control" id="inputTelVast" placeholder="Telefoon vast">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputTelMob" class="col-lg-2 control-label">Telefoon mobiel</label>
+                                    <div class="col-lg-10">
+                                        <input type="text" class="form-control" id="inputTelMob" placeholder="Telefoon mobiel">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -107,6 +125,28 @@
                                         <input type="text" class="form-control" id="inputEmail" placeholder="E-mail">
                                     </div>
                                 </div>
+                                <h5>Persoonlijk</h5>
+                                <div class="form-group">
+                                    <label class="col-lg-2 control-label">Gehuwd?</label>
+                                    <div class="col-lg-10">
+                                        <input type="radio" name="marriage" value="ja">Ja
+                                        <input type="radio" name="marriage" value="nee">Nee
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-lg-2 control-label">Samenwonend?</label>
+                                    <div class="col-lg-10">
+                                        <input type="radio" name="marriage" value="ja">Ja
+                                        <input type="radio" name="marriage" value="nee">Nee
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputPassword" class="col-lg-2 control-label">Geboortedatum</label>
+                                    <div class="col-lg-10">
+                                        <input type="date" class="form-control" id="inputBDay" placeholder="Geboortedatum">
+                                    </div>
+                                </div>
+                                
                                 <div class="form-group">
                                     <label for="inputPassword" class="col-lg-2 control-label">Geslacht</label>
                                     <div class="col-lg-10">
