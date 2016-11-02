@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css"/>
         <link rel="stylesheet" type="text/css" href="css/muziektherapie.css">
+        <link rel="stylesheet" type="text/css" href="css/footer.css">
         <script src="js/jquery-3.1.1.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
         <title>Muziektheraphie</title>
@@ -28,29 +29,43 @@
 
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-nav">
-                            <li class="active"><a href="Index.html">Login <span class="sr-only">(current)</span></a></li>
-                            <li><a href="#">Link</a></li>
+                            <li><a href="therapeutHome.html">Admin home <span class="sr-only">(current)</span></a></li>
                             <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Client <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="#">Action</a></li>
-                                    <li><a href="#">Another action</a></li>
-                                    <li><a href="#">Something else here</a></li>
-                                    <li class="divider"></li>
-                                    <li><a href="#">Separated link</a></li>
-                                    <li class="divider"></li>
-                                    <li><a href="#">One more separated link</a></li>
+                                    <li><a href="#">Aanmaken</a></li>
+                                    <li><a href="#">Bewerken</a></li>
+                                    <li><a href="#">Verwijderen</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Therapeut <span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#">Aanmaken</a></li>
+                                    <li><a href="#">Bewerken</a></li>
+                                    <li><a href="#">Verwijderen</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Naaste <span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#">Aanmaken</a></li>
+                                    <li><a href="#">Bewerken</a></li>
+                                    <li><a href="#">Verwijderen</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Vragenlijst <span class="caret"></span></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="AanmakenVragenlijst.html">Aanmaken</a></li>
+                                    <li><a href="#">Bewerken</a></li>
+                                    <li><a href="#">Verwijderen</a></li>
                                 </ul>
                             </li>
                         </ul>
-                        <form class="navbar-form navbar-left" role="search">
-                            <div class="form-group">
-                                <input type="text" class="form-control" placeholder="Search">
-                            </div>
-                            <button type="submit" class="btn btn-default">Submit</button>
-                        </form>
                         <ul class="nav navbar-nav navbar-right">
-                            <li><a href="#">Link</a></li>
+                            <li class="navbar-text">Ingelogd als Sonja</li>
+                            <li><a href="index.html">Uitloggen <span class="sr-only">(current)</span></a></li>
                         </ul>
                     </div>
                 </div>
@@ -59,26 +74,7 @@
 
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-md-3 col-lg-offset-0"> 
-                        <h3>Opties</h3>
-                        <h4>Cliënten</h4>
-                        <div class="col-md-1"></div><a href="therapeutHome.html"><p>Aanmaken Cliënt</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Bewerken Cliënt</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Cliënt</p></a>
-                        <h4>Vragenlijsten</h4>
-                        <div class="col-md-1"></div><a href="AanmakenVragenlijst.html"><p>Aanmaken Vragenlijst</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Bewerken Vragenlijst</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Vragenlijst</p></a>
-                        <h4>Naasten</h4>
-                        <div class="col-md-1"></div><a href="#"><p>Aanmaken Naasten</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Bewerken Naasten</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Naasten</p></a>
-                        <h4>Therapeuten</h4>
-                        <div class="col-md-1"></div><a href="#"><p>Aanmaken Therapeut</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Bewerken Therapeut</p></a>
-                        <div class="col-md-1"></div><a href="#"><p>Verwijderen Therapeut</p></a>
-                    </div>
-                    <div class="col-md-9 col-md-offset-0 blue-bg">
+                    <div class="col-md-10 col-md-offset-1 blue-bg">
                         <h3> Aanmaken nieuwe Vragenlijst</h3>
                         <form class="form-horizontal">
                             <fieldset>
@@ -119,33 +115,9 @@
                                     </div>
                                 </div>
                                  <div class="form-group">
-                                    <label for="inputVraag6" class="col-lg-2 control-label">Vraag 6:</label>
+                                     <label for="inputVraag6" class="col-lg-2 control-label"></label>
                                     <div class="col-lg-10">
-                                        <input type="text" class="form-control" id="Vraag6" placeholder="Vraag 6">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="inputVraag7" class="col-lg-2 control-label">Vraag 7:</label>
-                                    <div class="col-lg-10">
-                                        <input type="text" class="form-control" id="Vraag7" placeholder="Vraag 7">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="inputVraag8" class="col-lg-2 control-label">Vraag 8:</label>
-                                    <div class="col-lg-10">
-                                        <input type="text" class="form-control" id="Vraag8" placeholder="Vraag 8">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="inputVraag9" class="col-lg-2 control-label">Vraag 9:</label>
-                                    <div class="col-lg-10">
-                                        <input type="text" class="form-control" id="Vraag9" placeholder="Vraag 9">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="inputVraag10" class="col-lg-2 control-label">Vraag 10:</label>
-                                    <div class="col-lg-10">
-                                        <input type="text" class="form-control" id="Vraag10" placeholder="Vraag 10">
+                                        <a href="#"><span style="font-size: 30px; font-weight: bold;" class="glyphicon glyphicon-plus"></span> Vraag toevoegen</a>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -159,6 +131,19 @@
                     </div>
                 </div>
             </div>
+
+            <footer class="bd-footer text-muted">
+                <div class="container">
+                    <ul class="bd-footer-links">
+                        <li><a href="https://facebook.com">Facebook</a></li>
+                        <li><a href="https://twitter.com/">Twitter</a></li>
+                        <li><a href="https://plus.google.com/">Google+</a></li>
+                    </ul>
+                    <p>Project Muziektherapie</p>
+                    <p>Copyright 2016. All rights reserved.</p>
+                </div>
+            </footer>
+            
         </div>
     </body>
 </html>
