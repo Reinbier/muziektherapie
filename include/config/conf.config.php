@@ -12,9 +12,9 @@
  */
 // database configuration
 define('DB_HOST', "db.muziektherapie.nl");
-define('DB_USER', "username");
-define('DB_PASS', "passowrd");
-define('DB_NAME', "db_name");
+define('DB_USER', "muziektherapie");
+define('DB_PASS', "Mz_ht201");
+define('DB_NAME', "muziektherapie");
 
 // log errors
 ini_set("log_errors", 'On');
