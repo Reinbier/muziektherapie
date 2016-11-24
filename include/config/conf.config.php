@@ -11,14 +11,14 @@
  * @category   Config-file
  */
 // database configuration
-define('DB_HOST', "db.muziektherapie.nl");
+define('DB_HOST', "localhost");
 define('DB_USER', "muziektherapie");
 define('DB_PASS', "Mz_ht201");
 define('DB_NAME', "muziektherapie");
 
 // log errors
 ini_set("log_errors", 'On');
-ini_set("error_log", $_SERVER["DOCUMENT_ROOT"] . "/tmp/php-error.log");
+ini_set("error_log", $_SERVER["DOCUMENT_ROOT"] . "/logs/php-error.log");
 // error displaying
 ini_set('error_reporting', E_ALL);
 error_reporting(E_ALL);
