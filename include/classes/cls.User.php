@@ -7,9 +7,49 @@
 class User extends DAL
 {
 
-    public function __construct()
+    private $userID;
+
+    public function __construct($userID = null)
     {
         parent::__construct();
+        
+        $this->userID = $userID;
+    }
+    
+    public function isTherapist()
+    {
+        $sql = "SELECT *
+                FROM USER_ROLE a, ROLE b
+                WHERE a.RoleID = b.RoleID
+                AND a.UserID = :userid
+                AND b.Role_name = 'Therapeut' OR b.Role_name = 'Stagiair'";
+        $result = $this->query($sql, array(
+            ":userid" => array($this->userID, PDO::PARAM_INT)
+        ));
+        
+        if(!is_null($result))
+        {
+            return true;
+        }
+        return false;
+    }
+    
+    public function isClient()
+    {
+        $sql = "SELECT *
+                FROM USER_ROLE a, ROLE b
+                WHERE a.RoleID = b.RoleID
+                AND a.UserID = :userid
+                AND b.Role_name = 'Client'";
+        $result = $this->query($sql, array(
+            ":userid" => array($this->userID, PDO::PARAM_INT)
+        ));
+        
+        if(!is_null($result))
+        {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -18,7 +58,7 @@ class User extends DAL
      * @param int $userID
      * @return object
      */
-    public function geUser($userID)
+    public function getUser($userID)
     {
         $sql = "SELECT *
                 FROM USER
@@ -28,6 +68,11 @@ class User extends DAL
         ), "one");
 
         return $result;
+    }
+    
+    public function insertUser()
+    {
+        
     }
 
 }
