@@ -8,6 +8,7 @@ $subpage = (isset($_GET["subpage"]) ? $_GET["subpage"] : null);
 
 // create new instance of Page class
 $cPage = new Page($page, $subpage);
+
 ?>
 
 <!DOCTYPE html>

@@ -15,6 +15,8 @@ define('DB_HOST', "localhost");
 define('DB_USER', "muziektherapie");
 define('DB_PASS', "Mz_ht201");
 define('DB_NAME', "muziektherapie");
+// salt used for encryption
+define("SALT", "parore2016");
 
 // log errors
 ini_set("log_errors", 'On');

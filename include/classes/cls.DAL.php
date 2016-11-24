@@ -209,4 +209,72 @@ class DAL
         $this->close($pdo);
         return false;
     }
+    
+    /**
+     * Returns a string of a field prepared for AES_DECRYPTION.
+     * 
+     * @param string $field Name of a field in the database.
+     * @return string
+     */
+    protected function getDecryptFieldString($field)
+    {
+        return "AES_DECRYPT(" . $field . ", '" . SALT . "')";
+    }
+    
+    /**
+     * Returns a string of a value prepared for AES_ENCRYPTION.
+     * 
+     * @param string $value Value to be encrypted
+     * @return string
+     */
+    protected function getEncryptValueString($value)
+    {
+        return "AES_ENCRYPT(" . $value . ", '" . SALT . "')";
+    }
+    
+    /**
+     * Returns a string of multiple fields prepared for AES_DECRYPTION
+     * 
+     * @param array $fields Array of fields in the database
+     * @return string
+     */
+    protected function getFieldsAsDecryptedString($fields)
+    {
+        $string = "";
+        foreach($fields as $field)
+        {
+            if($string == "")
+            {
+                $string .= $this->getDecryptFieldString($field);
+            }
+            else
+            {
+                $string .= ", " . $this->getDecryptFieldString($field);
+            }
+        }
+        return $string;
+    }
+    
+    /**
+     * Returns a string of multiple values prepared for AES_ENCRYPTION.
+     * 
+     * @param array $values Array of values to be encrypted
+     * @return string
+     */
+    protected function getValuesAsEncryptedString($values)
+    {
+        $string = "";
+        foreach($values as $value)
+        {
+            if($string == "")
+            {
+                $string .= $this->getEncryptValueString($value);
+            }
+            else
+            {
+                $string .= ", " . $this->getEncryptValueString($value);
+            }
+        }
+        return $string;
+    }
 }

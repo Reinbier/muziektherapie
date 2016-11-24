@@ -70,6 +70,24 @@ class User extends DAL
         return $result;
     }
     
+    /**
+     * Method for retrieving user data using his email
+     * 
+     * @param string $email
+     * @return object
+     */
+    public function getUserByEmail($email)
+    {
+        $sql = "SELECT Email, Password
+                FROM USER
+                WHERE Email = :email";
+        $result = $this->query($sql, array(
+            ":userid" => array($userID, PDO::PARAM_STR)
+        ), "one");
+
+        return $result;
+    }
+    
     public function insertUser()
     {
         
