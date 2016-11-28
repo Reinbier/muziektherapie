@@ -26,7 +26,7 @@ class Login extends DAL
         
     }
     
-    public function checkPassword($password, $hashvalue)
+    public function checkPassword($password, $hashValue)
     {
         
     }

@@ -277,4 +277,24 @@ class DAL
         }
         return $string;
     }
+    
+    /**
+     * Returns an array of fields in the format: fieldName => Value( = "").
+     * 
+     * @param string $tableName Name of table in database
+     * @return array
+     */
+    protected function getFieldsOfTable($tableName)
+    {
+        $sql = "SHOW COLUMNS 
+                FROM " . $tableName;
+        $result = $this->query($sql);
+
+        $return = array();
+        foreach ($result as $tableColumn)
+        {
+            $return[$tableColumn->Field] = "";
+        }
+        return $return;
+    }
 }
