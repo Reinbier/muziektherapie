@@ -39,7 +39,7 @@ class Measurement extends DAL
 	 * @param  int $questionlistID id of the questionlist that needs to be filled in within this measurement.
 	 * @return int insertedID	   Returns the id of the inserted row. 				                   
 	 */
-	public function create_Measurement($name, $treatmentID, $questionlistID)
+	public function createMeasurement($name, $treatmentID, $questionlistID)
 	{
 		$sql = "INSERT INTO MEASUREMENT (Name, TreatmentID, QuestionlistID) 
 		VALUES (:name, :treatmentID, :questionlistID)";
