@@ -45,29 +45,14 @@ class Measurement extends DAL
 		VALUES (:name, :treatmentID, :questionlistID)";
 
 		$result = $this->query($sql, array(
-			":name" => array($name, PDO::PARAM_STRING),
+			":name" => array($name, PDO::PARAM_STR),
 			":treatmentID" => array($treatmentID, PDO::PARAM_INT),
 			"questionlistID" => array($questionlistID, PDO::PARAM_INT)));
 
 		return $result;
 	}
 
-	/**
-	 * Gets treatment where the measurement is linked to.
-	 * @param  int $userID 	  The ID of the user which treatment we have to find.
-	 * @return [type]         returns the treatment ID of the treatment where user with $userID is patient.
-	 */
-	public function getTreatmentByUserID($userID)
-	{
-		$sql = "SELECT TREATMENTID
-				FROM TREATMENT_USER
-				WHERE UserID = :userID";
-
-		$result = $this->query($sql, array(
-			":userID" => array($userID, PDO::PARAM_INT)));
-
-		return $result;
-	}
+	
 
 }
 
