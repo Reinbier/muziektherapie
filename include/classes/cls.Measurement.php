@@ -17,14 +17,14 @@ class Measurement extends DAL
 
 	/**
 	 * Gets a measurent by its ID.
-	 * @param  int $measurementID [description]
-	 * @return [type]                [description]
+	 * @param  int $measurementID ID of the measurement needs to be found.
+	 * @return bool                Returns if the SELECT is succesfully done.
 	 */
 	public function getMeasurement($measurementID) 
 	{
 		$sql = "SELECT *
 				FROM MEASUREMENT
-				WHERE MeasurementID =".":measurementID";
+				WHERE MeasurementID = :measurementID";
 
 		$result = $this->query($sql, array(
 			":measurementID" => array($measurementID, PDO::PARAM_INT)), "one");
@@ -41,13 +41,30 @@ class Measurement extends DAL
 	 */
 	public function create_Measurement($name, $treatmentID, $questionlistID)
 	{
-		$sql = "INSERT INTO MEASUREMENT (Number, Name, TreatmentID, QuestionlistID) 
-				VALUES (:number, :name, :treatmentID, :questionlistID)";
+		$sql = "INSERT INTO MEASUREMENT (Name, TreatmentID, QuestionlistID) 
+		VALUES (:name, :treatmentID, :questionlistID)";
 
 		$result = $this->query($sql, array(
 			":name" => array($name, PDO::PARAM_STRING),
 			":treatmentID" => array($treatmentID, PDO::PARAM_INT),
 			"questionlistID" => array($questionlistID, PDO::PARAM_INT)));
+
+		return $result;
+	}
+
+	/**
+	 * Gets treatment where the measurement is linked to.
+	 * @param  int $userID 	  The ID of the user which treatment we have to find.
+	 * @return [type]         returns the treatment ID of the treatment where user with $userID is patient.
+	 */
+	public function getTreatmentByUserID($userID)
+	{
+		$sql = "SELECT TREATMENTID
+				FROM TREATMENT_USER
+				WHERE UserID = :userID";
+
+		$result = $this->query($sql, array(
+			":userID" => array($userID, PDO::PARAM_INT)));
 
 		return $result;
 	}
