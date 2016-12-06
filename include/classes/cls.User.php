@@ -12,10 +12,10 @@ class User extends DAL
     public function __construct($userID = null)
     {
         parent::__construct();
-        
+
         $this->userID = $userID;
     }
-    
+
     public function isTherapist()
     {
         $sql = "SELECT *
@@ -26,14 +26,14 @@ class User extends DAL
         $result = $this->query($sql, array(
             ":userid" => array($this->userID, PDO::PARAM_INT)
         ));
-        
-        if(!is_null($result))
+
+        if (!is_null($result))
         {
             return true;
         }
         return false;
     }
-    
+
     public function isClient()
     {
         $sql = "SELECT *
@@ -44,8 +44,8 @@ class User extends DAL
         $result = $this->query($sql, array(
             ":userid" => array($this->userID, PDO::PARAM_INT)
         ));
-        
-        if(!is_null($result))
+
+        if (!is_null($result))
         {
             return true;
         }
@@ -69,7 +69,7 @@ class User extends DAL
 
         return $result;
     }
-    
+
     /**
      * Method for retrieving user data using his email
      * 
@@ -78,16 +78,18 @@ class User extends DAL
      */
     public function getUserByEmail($email)
     {
-        $sql = "SELECT Email, Password
+        $fields = $this->getDecryptedTableFields("USER");
+        
+        $sql = "SELECT " . $fields . "
                 FROM USER
-                WHERE Email = :email";
+                WHERE Email = " . $this->getEncryptValueString(":email");
         $result = $this->query($sql, array(
-            ":userid" => array($userID, PDO::PARAM_STR)
+            ":email" => array($email, PDO::PARAM_STR)
         ), "one");
 
         return $result;
     }
-    
+
     public function insertUser()
     {
         
