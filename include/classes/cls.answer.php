@@ -12,13 +12,13 @@ Class Question extends DAL {
     public function __construct($answerID) {
         parent::__construct();
 
-        $this->QuestionID = $answerID;
+        $this->answerID = $answerID;
     }
 
     /**
-     * Method for retrieving question data
+     * Method for retrieving answer data
      * 
-     * @param int $questionID
+     * @param int $answerID
      * @return object
      */
     public function getanswer($answerID) {
@@ -33,7 +33,12 @@ Class Question extends DAL {
     }
 
    
-    
+    /**
+     * Method for inserting answers into database
+     * 
+     * Values van de ingevoerde velden worden opgeslagen in de database op de beantwoorde vraag
+     * 
+     */
     public function possibleAnswer()
     {
         $sql = "INSERT INTO ANSWER (PossibleAnswerID, QuestionID,MeasurementID,UserID,Answer)

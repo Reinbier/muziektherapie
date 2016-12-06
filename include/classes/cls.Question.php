@@ -32,21 +32,11 @@ Class Question extends DAL {
         return $result;
     }
 
-    public function showQuestionlist() {
-        $sql = "SELECT *
-                FROM QUESTION a, QUESTIONLIST b
-                WHERE a.QuestionID = b.QuestionID
-                AND a.QuestionID = :questionid";
-
-        $result = $this->query($sql, array(
-            ":questionid" => array($this->questionID, PDO::PARAM_INT)
-                ));
-
-        if (!is_null($result)) {
-            return true;
-        }
-        return false;
-    }
+   /**
+     * Method for creating questionlist
+     * 
+     * fields are saved as a questionlist
+     */
 
     public function createQuestionlist() 
     {
