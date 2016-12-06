@@ -1,27 +1,24 @@
 <?php
-
 /**
- * 
- */
-class Question extends DAL
+* 
+*/
+class QuestionList extends DAL
 {
 	
 	function __construct()
 	{
 		parent::__construct();
 	}
-	
-	public function createQuestion($question, $questionListID)
+
+	public function createQuestionList($Name)
 	{
-		$sql = 'INSERT INTO QUESTION (Question, QuestionlistID)
-				VALUES (:question, :questionListID)';
+		$sql = "INSERT INTO QuestionList (Name)
+				VALUES (:name)";
 
 		$result = $this->query($sql, array(
-			":question" => array($question, PDO::PARAM_STR)),
-			":questionListID" => array($questionListID, PDO::PARAM_INT),
+			":name" => array($Name, PDO::PARAM_STR),
+			),
 		);
-
-		return $result;	
 	}
 
 	public function getQuestions($questionListID)
@@ -37,8 +34,7 @@ class Question extends DAL
 
 		return $result;
 	}
-
-}
+}	
 
 
 ?>
