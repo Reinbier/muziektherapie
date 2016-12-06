@@ -7,9 +7,13 @@
 class LayoutClient extends Layout
 {
 
-    public function __construct()
+    private $page;
+    private $userID;
+
+    public function __construct($userID)
     {
         parent::__construct();
+        $this->userID = $userID;
     }
 
     public function getHeader()
@@ -31,7 +35,9 @@ class LayoutClient extends Layout
 
                             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                                 <ul class="nav navbar-nav">
-                                    <li><a href="/home/">Home <span class="sr-only">(current)</span></a></li>
+                                    <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
+                                    <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Voortgang</a></li>
+                                    <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Vragenlijst</a></li>
                                 </ul>
                                 <ul class="nav navbar-nav navbar-right">
                                     <li class="active"><a href="/?logout">Uitloggen <span class="sr-only">(current)</span></a></li>
