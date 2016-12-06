@@ -7,7 +7,7 @@
 
 Class Question extends DAL {
 
-    private $questionID;
+    private $answerID;
 
     public function __construct($answerID) {
         parent::__construct();
@@ -21,12 +21,12 @@ Class Question extends DAL {
      * @param int $questionID
      * @return object
      */
-    public function getanswer($questionID) {
+    public function getanswer($answerID) {
         $sql = "SELECT *
                 FROM QUESTION
-                WHERE QuestionID = :questionid";
+                WHERE QuestionID = :answerid";
         $result = $this->query($sql, array(
-            ":questionid" => array($questionID, PDO::PARAM_INT)
+            ":answerid" => array($answerID, PDO::PARAM_INT)
                 ), "one");
 
         return $result;
@@ -45,14 +45,19 @@ Class Question extends DAL {
         $userid = $_POST['userid'];
         $answer = $_POST['answer'];
         
-        $insert = $this->query($sql,array(
+        $insert = $this->query ($sql, array(":possibleanswer" => array($possibleanswer, PDO::PARAM_INT, "multiiple"),
+            ":questionid" => array($questionid, PDO::PARAM_INT, "multiiple"),
+            ":measurementid" => array($measurementid, PDO::PARAM_INT, "multiiple"),
+            ":userid" => array($userid, PDO::PARAM_INT, "multiiple"),
+            ":answer" => array($answer, PDO::PARAM_STR, "multiiple")
+            ));
             foreach($insert as $answer)
             {
-             $a = array(':possibleanswer'=> $answer = [$possibleanswer],  PDO::PARAM_INT
-                        ':questionid'=>$answer = [$possibleanswer],
-                        ':measurementid'=>$answer[$measurementid],
-                        ':userid'=>$answer[$userid],
-                        ':answer'=>$answer[$answer]
+             $a = array(':possibleanswer'=> $answer = [$possibleanswer],
+                        ':questionid' =>$answer = [$possibleanswer],
+                        ':measurementid' =>$answer[$measurementid],
+                        ':userid' =>$answer[$userid],
+                        ':answer' =>$answer[$answer]
                  );
              
                  if ($insert->execute($a)) 
@@ -67,7 +72,7 @@ Class Question extends DAL {
                 }
              
             }
-        ))
+        
     }
 
 }

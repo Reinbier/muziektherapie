@@ -17,7 +17,7 @@ class QuestionList extends DAL
 
 		$result = $this->query($sql, array(
 			":name" => array($Name, PDO::PARAM_STR),
-			),
+			)
 		);
 	}
 
