@@ -61,14 +61,13 @@ Class Question extends DAL {
         
         if (!is_null($result))
         {
-            $questions = "INSERT INTO QUESTION (QuestionID, Question, Type, QuestionlistID)
-                          VALUES (:questionid, :question, :type, :questionlistid)
+            $questions = "INSERT INTO QUESTION (QuestionID, Question, QuestionlistID)
+                          VALUES (:questionid, :question, :questionlistid)
                          ";
             
             $insert = $this->query($questions, array(
             ":questionid" => array ($this->$_POST(['questionID']),$questionid, PDO::PARAM_INT),
             ":question" => array ($this->$_POST(['question']),$question, PDO::PARAM_STR),
-            ":type" => array ($this->$_POST(['type']),$type , PDO::PARAM_STR),   
             ":questionlistid" => array ($this->$_POST(['questionlistID']),$questionlistid ,PDO::PARAM_INT), 
             ));
             
@@ -76,7 +75,6 @@ Class Question extends DAL {
             {
                  $a = array    (':questionid'=>$value[$questionid],
                                 ':question'=>$value[$question],
-                                ':type'=>$value[$type],
                                 ':questionlistid'=>$value[$questionlistid]);
                  
                  if ($insert->execute($a)) 

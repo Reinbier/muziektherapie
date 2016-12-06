@@ -11,7 +11,7 @@ class Role extends DAL
 	/**
 	 * Creates a new Role
 	 * @param  String $name 	Name of the Role
-	 * @return int       		ID of the created Role.
+	 * @return String	       	Returns a string to let user know if it succeeded.
 	 */
 	public function createRole($name)
 	{
@@ -21,23 +21,31 @@ class Role extends DAL
 		$result = $this->query($sql, array(
 			":name" => array($name, PDO::PARAM_STR)));
 
-		return $result;
+		if (!$result) 
+		{
+		 	$string = "Something went wrong";
+		}
+		else 
+		{
+			$string = "Role succesfully added";
+		}
+		return $string;
 	}
 
 	/**
 	 * Gets the role of the added userID
 	 * @param  int $userID	  ID of the user from who we will check the role.
-	 * @return int         returns the ID of the role.
+	 * @return String         returns the name of the role.
 	 */
-	public function getRole($userID)
+	public function getRoleByUserID($userID)
 	{
-		$sql = "SELECT RoleID
-				FROM USER_ROLE
-				WHERE UserID = :userid";
+		$sql = "SELECT b.Role_name
+				FROM USER_ROLE a, ROLE b
+				WHERE a.UserID = :userid";
 
 		$result = $this->query($sql, array(
 			":userid" => array(
-				$userID, PDO::PARAM_INT)));
+				$userID, PDO::PARAM_INT)), "column");
 
 		return $result;
 	}

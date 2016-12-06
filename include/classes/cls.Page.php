@@ -57,9 +57,16 @@ class Page extends DAL
     
     public function buildLayoutTherapist($userID)
     {
-        $cLayoutTherapist = new LayoutTherapist();
+        $cLayoutTherapist = new LayoutTherapist($userID);
+        
         switch($this->page)
         {
+            case "therapeut":
+                return $cLayoutTherapist->getTherapistPage($this->subpage);
+            case "client":
+                return $cLayoutTherapist->getClientPage($this->subpage);
+            case "vragenlijst":
+                return $cLayoutTherapist->getQuestionListPage($this->subpage);
             case "home":
             default:
                 return $cLayoutTherapist->getHomePage();
@@ -68,7 +75,7 @@ class Page extends DAL
     
     public function buildLayoutClient($userID)
     {
-        $cLayoutClient = new LayoutClient();
+        $cLayoutClient = new LayoutClient($userID);
         switch($this->page)
         {
             case "home":

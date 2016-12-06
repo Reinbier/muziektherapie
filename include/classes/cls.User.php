@@ -58,9 +58,11 @@ class User extends DAL
      * @param int $userID
      * @return object
      */
-    public function getUser($userID)
+    public function getUserById($userID)
     {
-        $sql = "SELECT *
+        $fields = $this->getDecryptedTableFields("USER");
+        
+        $sql = "SELECT " . $fields . "
                 FROM USER
                 WHERE UserID = :userid";
         $result = $this->query($sql, array(
