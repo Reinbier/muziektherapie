@@ -20,11 +20,11 @@ $cPage = new Page($page, $subpage);
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css"/>
-        <link rel="stylesheet" type="text/css" href="css/muziektherapie.css">
-        <link rel="stylesheet" type="text/css" href="css/footer.css">
+        <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/css/muziektherapie.css">
+        <link rel="stylesheet" type="text/css" href="/css/footer.css">
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-        <script src="bootstrap/js/bootstrap.min.js"></script>
+        <script src="/bootstrap/js/bootstrap.min.js"></script>
         <title>Muziektheraphie</title>
     </head>
     <body>

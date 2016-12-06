@@ -14,7 +14,7 @@ abstract class Layout extends DAL
     
     public function getHeader()
     {
-        return '<img class="img-responsive" src="images/Weblogo.png" alt="Sonja Aalbers" />';
+        return '<img class="img-responsive" src="/images/Weblogo.png" alt="Sonja Aalbers" />';
     }
     
     public function getContent($content)
