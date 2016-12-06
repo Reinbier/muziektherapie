@@ -218,7 +218,7 @@ class DAL
      */
     protected function getDecryptFieldString($field)
     {
-        return "AES_DECRYPT(" . $field . ", '" . SALT . "')";
+        return "AES_DECRYPT(" . $field . ", '" . SALT . "') AS " . $field;
     }
     
     /**
@@ -236,20 +236,33 @@ class DAL
      * Returns a string of multiple fields prepared for AES_DECRYPTION
      * 
      * @param array $fields Array of fields in the database
+     * @param boolean $checkType    Indicates whether to check on the column's datetype
      * @return string
      */
-    protected function getFieldsAsDecryptedString($fields)
+    protected function getFieldsAsDecryptedString($fields, $checkType = false)
     {
         $string = "";
-        foreach($fields as $field)
+        foreach($fields as $field => $value)
         {
-            if($string == "")
+            if($string !== "")
             {
-                $string .= $this->getDecryptFieldString($field);
+                $string .= ", ";
+            }
+            
+            if($checkType)
+            {
+                if($value == "varbinary(150)")
+                {
+                    $string .= $this->getDecryptFieldString($field);
+                }
+                else
+                {
+                    $string .= $field;
+                }
             }
             else
             {
-                $string .= ", " . $this->getDecryptFieldString($field);
+                $string .= $this->getDecryptFieldString($value);
             }
         }
         return $string;
@@ -279,7 +292,7 @@ class DAL
     }
     
     /**
-     * Returns an array of fields in the format: fieldName => Value( = "").
+     * Returns an array of fields in the format: fieldName => Type( = MySQL dataType).
      * 
      * @param string $tableName Name of table in database
      * @return array
@@ -293,8 +306,20 @@ class DAL
         $return = array();
         foreach ($result as $tableColumn)
         {
-            $return[$tableColumn->Field] = "";
+            $return[$tableColumn->Field] = $tableColumn->Type;
         }
         return $return;
+    }
+    
+    /**
+     * Returns a string of all fields of a table prepared for AES_DECRYPTION
+     * 
+     * @param string $tableName Name of the table.
+     * @return string
+     */
+    protected function getDecryptedTableFields($tableName)
+    {
+        $fields = $this->getFieldsOfTable($tableName);
+        return $this->getFieldsAsDecryptedString($fields, true);
     }
 }

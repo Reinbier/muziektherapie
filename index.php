@@ -2,13 +2,17 @@
 // include global config file
 require_once($_SERVER['DOCUMENT_ROOT'] . '/include/config/conf.config.php');
 
+if(isset($_GET["logout"]))
+{
+    unset($_SESSION["userID"]);
+}
+
 // get the page variables
 $page = (isset($_GET["page"]) ? $_GET["page"] : null);
 $subpage = (isset($_GET["subpage"]) ? $_GET["subpage"] : null);
 
 // create new instance of Page class
 $cPage = new Page($page, $subpage);
-
 ?>
 
 <!DOCTYPE html>
@@ -27,19 +31,7 @@ $cPage = new Page($page, $subpage);
         <div class="container">
 
             <?php
-            $cPage->displayHeader();
-            ?>
-
-            <div class="container-fluid">
-
-                <?php
-                $cPage->displayContent();
-                ?>
-                
-            </div>
-
-            <?php
-            $cPage->displayFooter();
+            $cPage->display();
             ?>
 
         </div>
