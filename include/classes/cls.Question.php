@@ -38,60 +38,6 @@ Class Question extends DAL {
      * fields are saved as a questionlist
      */
 
-    public function createQuestionlist() 
-    {
-        $sql = "INSERT INTO QUESTIONLIST (QuestionlistID, Name)
-        VALUES (:questionlistid, :questionltisname)    
-        ";
-        
-        $result = $this->query($sql, array(
-            ":questionlistid" => array ($this->$_POST(['questionlistID']), PDO::PARAM_INT),
-            ":questionlistname" => array ($this->$_POST(['questionlistName']), PDO::PARAM_STR)
-            ));
-        
-        if (!is_null($result))
-        {
-            $questions = "INSERT INTO QUESTION (QuestionID, Question, Type, QuestionlistID)
-                          VALUES (:questionid, :question, :type, :questionlistid)
-                         ";
-            
-            $insert = $this->query($questions, array(
-            ":questionid" => array ($this->$_POST(['questionID']),$questionid, PDO::PARAM_INT),
-            ":question" => array ($this->$_POST(['question']),$question, PDO::PARAM_STR),
-            ":type" => array ($this->$_POST(['type']),$type , PDO::PARAM_STR),   
-            ":questionlistid" => array ($this->$_POST(['questionlistID']),$questionlistid ,PDO::PARAM_INT), 
-            ));
-            
-            foreach ($insert as $value) 
-            {
-                 $a = array    (':questionid'=>$value[$questionid],
-                                ':question'=>$value[$question],
-                                ':type'=>$value[$type],
-                                ':questionlistid'=>$value[$questionlistid]);
-                 
-                 if ($insert->execute($a)) 
-                    {          
-                     // Query succeeded.
-                     echo "succes";
-                    } 
-                else 
-                {
-                    // Query failed.
-                 echo $insert->errorCode();
-                }
-            }
-           
-        }
-        else
-        {
-            return false;
-        }
-        
-        
-       
-    
-    }
-
 }
 
 ?>

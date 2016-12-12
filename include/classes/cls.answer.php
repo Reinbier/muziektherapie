@@ -33,12 +33,10 @@ Class Question extends DAL {
     }
 
    
-    /**
-     * Method for inserting answers into database
-     * 
-     * Values van de ingevoerde velden worden opgeslagen in de database op de beantwoorde vraag
-     * 
-     */
+   /**
+    *  Method for inserting a possible answer into the database,
+    *   based on a specific questionid 
+    */
     public function possibleAnswer()
     {
         $sql = "INSERT INTO ANSWER (PossibleAnswerID, QuestionID,MeasurementID,UserID,Answer)

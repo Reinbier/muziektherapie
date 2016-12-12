@@ -9,7 +9,14 @@ class QuestionList extends DAL
 	{
 		parent::__construct();
 	}
-
+        
+        
+        /**
+         * Creats a questionlist based on a form, and inserts thes values 
+         * into the database
+         * @param type $Name
+         * 
+         */
 	public function createQuestionList($Name)
 	{
 		$sql = "INSERT INTO QuestionList (Name)
@@ -50,7 +57,12 @@ class QuestionList extends DAL
                 }
                 echo "succes";
 	}
-
+        
+        /**
+         * returns a lsit of question from the slected questionlist
+         * @param type $questionListID
+         * @return type
+         */
 	public function getQuestions($questionListID)
 	{
 		$sql = "SELECT *
@@ -64,6 +76,8 @@ class QuestionList extends DAL
 
 		return $result;
 	}
+        
+        
 }	
 
 

@@ -41,7 +41,10 @@ class LayoutNaaste extends Layout
                     </nav>
                 ';
     }
-
+    /** Displays the homepage of the specific user
+     * 
+     * @return type
+     */
     public function getHomePage()
     {
         $return = '
@@ -72,7 +75,9 @@ class LayoutNaaste extends Layout
         
         return $this->getHeader() . parent::getContent($return) . $this->getFooter();
     }
-
+    /** returns a page with a guestionlist the user can interact with.
+     * @return the webpage 
+     */
      public function getInsertQuestionlist()
     {
          $cquestionlist = new QuestionList();
