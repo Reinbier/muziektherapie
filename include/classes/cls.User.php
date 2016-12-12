@@ -22,7 +22,7 @@ class User extends DAL
                 FROM USER_ROLE a, ROLE b
                 WHERE a.RoleID = b.RoleID
                 AND a.UserID = :userid
-                AND b.Role_name = 'Therapeut' OR b.Role_name = 'Stagiair'";
+                AND (b.Role_name = 'Therapeut' OR b.Role_name = 'Stagiair')";
         $result = $this->query($sql, array(
             ":userid" => array($this->userID, PDO::PARAM_INT)
         ));
@@ -92,7 +92,7 @@ class User extends DAL
         return $result;
     }
 
-    public function insertUser()
+    public function insertUser($aParams)
     {
         
     }
