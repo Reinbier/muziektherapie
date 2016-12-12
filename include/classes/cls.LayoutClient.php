@@ -56,6 +56,8 @@ class LayoutClient extends Layout
     {
         $this->page = "home";
 
+        $announcement ="";
+
         $return = '
         <div class="container-fluid">
 
@@ -64,7 +66,7 @@ class LayoutClient extends Layout
                 <h1>Welkom '. $this->cUser->getUserById($this->userID)->Name .'<h1>
                     <div class="col-md-6 col-md-offset-1 well">
                         <h3>Meldingen</h3>
-                        <p>Op dit moment geen meldingen om weer te geven</p>
+                        <p class="lead">Op dit moment geen meldingen om weer te geven</p>
                     </div>
                 </div>
             </div>
