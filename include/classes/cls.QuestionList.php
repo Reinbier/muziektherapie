@@ -76,9 +76,24 @@ class QuestionList extends DAL
 
 		return $result;
 	}
+<<<<<<< HEAD
         
         
 }	
 
+=======
+>>>>>>> master
 
+        public function getAllQuestionlists($questionlistID)
+        {
+         $sql = "SELECT name
+                 FROM  Questionlist
+                 WHERE QuestionlistID = :questionlistID";
+         
+         $result = $this->query($sql, array (
+             ":questionlistID" => array($questionlistID, PDO::PARAM_INT)
+         ));
+            return $result;
+        }
+}
 ?>
