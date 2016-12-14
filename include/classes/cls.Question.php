@@ -31,13 +31,6 @@ Class Question extends DAL {
 
         return $result;
     }
-
-   /**
-     * Method for creating questionlist
-     * 
-     * fields are saved as a questionlist
-     */
-
 }
 
 ?>

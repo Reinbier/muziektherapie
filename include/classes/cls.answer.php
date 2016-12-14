@@ -5,7 +5,7 @@
  * Date: 24/11/2016
  */
 
-Class Question extends DAL {
+Class Answer extends DAL {
 
     private $answerID;
 
