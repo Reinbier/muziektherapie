@@ -10,12 +10,16 @@ class LayoutClient extends Layout
     private $page;
     private $userID;
     private $cUser;
+    private $cTreatment;
+    private $cMeasurement;
 
     public function __construct($userID)
     {
         parent::__construct();
         $this->userID = $userID;
         $this->cUser = new User();
+        $this->cTreatment = new Treatment();
+        $this->cMeasurement = new Measurement();
     }
 
     public function getHeader()
@@ -77,10 +81,13 @@ class LayoutClient extends Layout
 
         public function getProgressPage()
         {
+            
+            $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
+            $NumOfMeasurements = $this->cMeasurement->getMeasurementsByTreatmentID($treatment->TreatmentID);
             $this->page = "voortgang";
             $return = '<div class="container-fluid">
             <div class="row">
-
+            Aantal metingen binnen deze behandeling: ' . $NumOfMeasurements .'
             </div>
         </div>';
 

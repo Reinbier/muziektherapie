@@ -52,6 +52,19 @@ class Measurement extends DAL
 		return $result;
 	}
 
+	public function getMeasurementsByTreatmentID($treatmentID)
+	{
+		$sql = "SELECT COUNT(*)
+				FROM MEASUREMENT
+				WHERE TreatmentID = :treatmentid";
+
+		$result = $this->query($sql, array(
+			":treatmentid" => array($treatmentID, PDO::PARAM_INT)),
+			"column");
+
+		return $result;
+	}
+
 	
 
 }

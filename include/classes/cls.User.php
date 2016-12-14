@@ -96,4 +96,11 @@ class User extends DAL
         
     }
 
+    public function GetAmountOfMeasurementsByUserId($userid)
+    {
+        $sql = "SELECT COUNT(*)
+                FROM MEASUREMENT
+                WHERE TreatmentID = :treatmentID";
+    }
+
 }
