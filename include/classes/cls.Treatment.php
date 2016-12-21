@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @author: Patrick Pieper
+ * @date: 06-12-2016
+ */
 class Treatment extends DAL
 {
 	function __construct()
@@ -30,14 +33,24 @@ class Treatment extends DAL
 	 */
 	public function getTreatmentByUserID($userID)
 	{
-		$sql = "SELECT TREATMENTID
-				FROM TREATMENT_USER
-				WHERE UserID = :userID";
+		$sql = "SELECT *
+				FROM TREATMENT_USER a, TREATMENT b
+				WHERE a.UserID = :userID
+				AND a.TreatmentID = b.TreatmentID
+				AND b.Actief = 1";
 
 		$result = $this->query($sql, array(
-			":userID" => array($userID, PDO::PARAM_INT)));
+			":userID" => array($userID, PDO::PARAM_INT)),
+			"one");
 
 		return $result;
+	}
+
+	public function getMeasurementsByTreatmentID($treatmentID)
+	{
+		$sql = "SELECT *
+				FROM MEASUREMENT
+				WHERE TreatmentID = :treatmentID";
 	}
 
 }

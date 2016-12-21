@@ -78,6 +78,10 @@ class Page extends DAL
         $cLayoutClient = new LayoutClient($userID);
         switch($this->page)
         {
+            case 'voortgang':
+                return $cLayoutClient->getProgressPage();
+                break;
+
             case "home":
             default:
                 return $cLayoutClient->getHomePage();
