@@ -24,6 +24,8 @@ $cPage = new Page($page, $subpage);
         <link rel="stylesheet" type="text/css" href="/css/muziektherapie.css">
         <link rel="stylesheet" type="text/css" href="/css/footer.css">
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script src="js/morris.min.js"></script>
+        <script src="js/raphael.min.js"></script>
         <script src="/bootstrap/js/bootstrap.min.js"></script>
         <title>Muziektheraphie</title>
     </head>

@@ -26,6 +26,7 @@ class User extends DAL
         $result = $this->query($sql, array(
             ":userid" => array($this->userID, PDO::PARAM_INT)
         ));
+
         if (!is_null($result))
         {
             return true;
@@ -60,13 +61,13 @@ class User extends DAL
     public function getUserById($userID)
     {
         $fields = $this->getDecryptedTableFields("USER");
-        
+
         $sql = "SELECT " . $fields . "
                 FROM USER
                 WHERE UserID = :userid";
         $result = $this->query($sql, array(
             ":userid" => array($userID, PDO::PARAM_INT)
-        ), "one");
+                ), "one");
 
         return $result;
     }
@@ -80,27 +81,52 @@ class User extends DAL
     public function getUserByEmail($email)
     {
         $fields = $this->getDecryptedTableFields("USER");
-        
+
         $sql = "SELECT " . $fields . "
                 FROM USER
                 WHERE Email = " . $this->getEncryptValueString(":email");
         $result = $this->query($sql, array(
             ":email" => array($email, PDO::PARAM_STR)
-        ), "one");
+                ), "one");
 
         return $result;
     }
 
-    public function insertUser()
+    public function insertUser($aParams, $role)
     {
         
+        $sql = "INSERT INTO USER (Name, Address, Place, Phone, Gender)
+                VALUES (:name, :adres, :place, :phone, :gender)";
+        $insertedID = $this->query($sql, array(
+            ":name" => array($this->getEncryptValueString($aParams["Name"]), PDO::PARAM_STR),
+            ":adres" => array($this->getEncryptValueString($aParams["Address"]), PDO::PARAM_STR),
+            ":place" => array($this->getEncryptValueString($aParams["Place"]), PDO::PARAM_STR),
+            ":phone" => array($this->getEncryptValueString($aParams["Phone"]), PDO::PARAM_STR),
+            ":gender" => array($this->getEncryptValueString($aParams["Gender"]), PDO::PARAM_STR)
+        ));
+
+        // add role to the user
+        return $this->insertUserRole($insertedID, $role);
     }
 
-    public function GetAmountOfMeasurementsByUserId($userid)
+    public function insertUserRole($userID, $roleName)
     {
-        $sql = "SELECT COUNT(*)
-                FROM MEASUREMENT
-                WHERE TreatmentID = :treatmentID";
+        $sql = "INSERT INTO USER_ROLE (RoleID, UserID)
+                VALUES (:roleid, :userid)";
+        return $this->query($sql, array(
+                    ":roleid" => array($this->getRoleIDByName($roleName), PDO::PARAM_STR),
+                    ":userid" => array($this->getEncryptValueString($userID), PDO::PARAM_STR)
+        ));
+    }
+
+    public function getRoleIDByName($roleName)
+    {
+        $sql = "SELECT RoleID 
+                FROM ROLE
+                WHERE Role_name = :name";
+        return $this->query($sql, array(
+                    ":name" => array($roleName, PDO::PARAM_STR)
+                        ), "column");
     }
 
 }

@@ -23,8 +23,8 @@ class Measurement extends DAL
 	public function getMeasurement($measurementID) 
 	{
 		$sql = "SELECT *
-				FROM MEASUREMENT
-				WHERE MeasurementID = :measurementID";
+		FROM MEASUREMENT
+		WHERE MeasurementID = :measurementID";
 
 		$result = $this->query($sql, array(
 			":measurementID" => array($measurementID, PDO::PARAM_INT)), "one");
@@ -52,20 +52,57 @@ class Measurement extends DAL
 		return $result;
 	}
 
-	public function getMeasurementsByTreatmentID($treatmentID)
+	public function getTotalMeasurementsByTreatmentID($treatmentID)
 	{
 		$sql = "SELECT COUNT(*)
-				FROM MEASUREMENT
-				WHERE TreatmentID = :treatmentid";
+		FROM MEASUREMENT
+		WHERE TreatmentID = :treatmentid";
 
 		$result = $this->query($sql, array(
 			":treatmentid" => array($treatmentID, PDO::PARAM_INT)),
-			"column");
+		"column");
 
 		return $result;
 	}
 
-	
+	public function getPoints($measurementID, $userID)
+	{
+		$measurementID = (int) $measurementID;
+		$userID = (int) $userID;
+		
+		$sql = "SELECT SUM( Points ) 
+		FROM POSSIBLE_ANSWER p, ANSWER a
+		WHERE p.PossibleID = a.PossibleAnswerID
+		AND a.MeasurementID = :measurementid
+		AND a.UserID = :userid";
+		$result = $this->query($sql, array(
+			":userid" => array(
+				$userID, 
+				PDO::PARAM_INT),
+			":measurementid" => array(
+				$measurementID, 
+				PDO::PARAM_INT),
+			),
+			"column");
+		return $result;
+	}
+
+	public function getMeasurementsbyTreatmentID($treatmentId)
+	{
+		$sql = "SELECT *
+				FROM MEASUREMENT
+				WHERE TreatmentID = :treatmentid";
+
+		$result = $this->query($sql, array(
+			":treatmentid" => array(
+				$treatmentId,
+				PDO::PARAM_INT),
+			));
+
+		return $result;
+	}
+
+
 
 }
 

@@ -8,6 +8,7 @@ class LayoutClient extends Layout
 {
 
     private $page;
+    private $title;
     private $userID;
     private $cUser;
     private $cTreatment;
@@ -20,6 +21,67 @@ class LayoutClient extends Layout
         $this->cUser = new User();
         $this->cTreatment = new Treatment();
         $this->cMeasurement = new Measurement();
+    }
+
+    private function buildPage($content = "No content found..", $sidebar = true)
+    {
+        if($sidebar)
+        {
+            // build the page with the sidebar
+            $return = '
+            <div class="row">
+                <div class="col-md-12 lead">
+                    <h2>' . $this->title . '</h2>
+                </div>
+            </div> 
+            <div class="row">
+
+                <div class="col-md-3">
+                    ' . $this->getLeftSideBar() . '
+                </div>
+
+                <div class="col-md-9">
+                    ' . $content . '
+                </div>
+
+            </div>
+            ';
+        }
+        else
+        {
+            // build the page without the sidebar
+            $return = '
+            <div class="row">
+                <div class="col-md-12 lead">
+                    <h2>' . $this->title . '</h2>
+                </div>
+            </div>  
+            <div class="row">
+
+                <div class="col-md-12">
+                    ' . $content . '
+                </div>
+
+            </div>
+            ';
+        }
+        
+        // wrap header, content divs and footer around the content and return it
+        return $this->getHeader() . parent::getContent($return) . $this->getFooter();
+    }
+    
+    private function getLeftSideBar()
+    {
+        return '
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Meteen naar:</h3>
+                </div>
+                <div class="panel-body">
+                    <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
+                </div>
+            </div>
+        ';
     }
 
     public function getHeader()
@@ -59,39 +121,61 @@ class LayoutClient extends Layout
     public function getHomePage()
     {
         $this->page = "home";
-
+        $this->title = "Startpagina";
         $announcement ="";
 
-        $return = '
-        <div class="container-fluid">
-
+        $content = '
             <div class="row">
-
-                <h1>Welkom '. $this->cUser->getUserById($this->userID)->Name .'<h1>
-                    <div class="col-md-6 col-md-offset-1 well">
-                        <h3>Meldingen</h3>
-                        <p class="lead">Op dit moment geen meldingen om weer te geven</p>
-                    </div>
+                <h1>Welkom '. $this->cUser->getUserById($this->userID)->Name .'</h1>
+                <div class="col-md-6 col-md-offset-1 well">
+                    <h3>Meldingen</h3>
+                    <p class="lead">Op dit moment geen meldingen om weer te geven</p>
                 </div>
             </div>
             ';
 
-            return $this->getHeader() . parent::getContent($return) . $this->getFooter();
+            return $this->buildPage($content, false);
         }
 
         public function getProgressPage()
         {
-            
+            $output = "";
             $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
-            $NumOfMeasurements = $this->cMeasurement->getMeasurementsByTreatmentID($treatment->TreatmentID);
-            $this->page = "voortgang";
-            $return = '<div class="container-fluid">
-            <div class="row">
-            Aantal metingen binnen deze behandeling: ' . $NumOfMeasurements .'
-            </div>
-        </div>';
+            $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
+            $measurements = $this->cMeasurement->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+            foreach ($measurements as $measurement)
+            {
+                $points = $this->cMeasurement->getPoints($measurement->MeasurementID, $this->userID);
+                $output .= "
+                <div class='col-md-6'>
+                    <div class='well'>
+                        <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
+                        " . $measurement->Name . "<br>
+                    </div>
+                </div> ";
+            }
 
-        return $this->getHeader() . parent::getContent($return) . $this->getFooter();
-    }
+            if($output == "")
+            {
+                $output = "Geen metingen gevonden voor deze behandeling";
+            }
+
+            $this->page = "voortgang";
+            $this->title = "Overzicht eigen gegevens";
+            $content = '
+            <div class="row">
+               <div class="col-md-4">
+                    Aantal metingen binnen deze behandeling: ' . $NumOfMeasurements .'
+                    <div class="row">
+                        ' . $output  .'
+                    </div>
+                </div>
+                <div class="col-md-8">
+
+                </div>
+            </div>';
+
+    return $this->buildPage($content, false);
+}
 
 }

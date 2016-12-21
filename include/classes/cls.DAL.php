@@ -269,29 +269,6 @@ class DAL
     }
     
     /**
-     * Returns a string of multiple values prepared for AES_ENCRYPTION.
-     * 
-     * @param array $values Array of values to be encrypted
-     * @return string
-     */
-    protected function getValuesAsEncryptedString($values)
-    {
-        $string = "";
-        foreach($values as $value)
-        {
-            if($string == "")
-            {
-                $string .= $this->getEncryptValueString($value);
-            }
-            else
-            {
-                $string .= ", " . $this->getEncryptValueString($value);
-            }
-        }
-        return $string;
-    }
-    
-    /**
      * Returns an array of fields in the format: fieldName => Type( = MySQL dataType).
      * 
      * @param string $tableName Name of table in database
