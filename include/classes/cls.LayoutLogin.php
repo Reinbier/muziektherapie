@@ -95,7 +95,7 @@ class LayoutLogin extends Layout
                                         </div>
                                         <div class="col-md-6">
                                             <div class="text-right">
-                                                <button type="submit" name="submitLogin" class="btn btn-primary">Inloggen</button>
+                                                <button type="submit" name="submitLogin" class="btn btn-primary nonajax">Inloggen</button>
                                             </div>
                                         </div>
                                     </div>
