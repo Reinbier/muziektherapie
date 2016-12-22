@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @author: Patrick Pieper 
+ * @Date: 21-12-2016
+ */
+
 class Role extends DAL
 {
 	
@@ -41,7 +46,8 @@ class Role extends DAL
 	{
 		$sql = "SELECT b.Role_name
 				FROM USER_ROLE a, ROLE b
-				WHERE a.UserID = :userid";
+				WHERE a.UserID = :userid
+				AND a.RoleID = b.RoleID";
 
 		$result = $this->query($sql, array(
 			":userid" => array(

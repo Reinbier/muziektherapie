@@ -128,5 +128,4 @@ class User extends DAL
                     ":name" => array($roleName, PDO::PARAM_STR)
                         ), "column");
     }
-
 }

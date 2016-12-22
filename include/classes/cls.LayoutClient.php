@@ -73,14 +73,14 @@ class LayoutClient extends Layout
     private function getLeftSideBar()
     {
         return '
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Meteen naar:</h3>
-                </div>
-                <div class="panel-body">
-                    <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
-                </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Meteen naar:</h3>
             </div>
+            <div class="panel-body">
+                <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
+            </div>
+        </div>
         ';
     }
 
@@ -125,57 +125,66 @@ class LayoutClient extends Layout
         $announcement ="";
 
         $content = '
-            <div class="row">
-                <h1>Welkom '. $this->cUser->getUserById($this->userID)->Name .'</h1>
-                <div class="col-md-6 col-md-offset-1 well">
-                    <h3>Meldingen</h3>
-                    <p class="lead">Op dit moment geen meldingen om weer te geven</p>
-                </div>
+        <div class="row">
+            <h1>Welkom '. $this->cUser->getUserById($this->userID)->Name .'</h1>
+            <div class="col-md-6 col-md-offset-1 well">
+                <h3>Meldingen</h3>
+                <p class="lead">Op dit moment geen meldingen om weer te geven</p>
             </div>
-            ';
+        </div>
+        ';
 
-            return $this->buildPage($content, false);
+        return $this->buildPage($content, false);
+    }
+
+    public function getProgressPage()
+    {
+        $output = "";
+        $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
+        $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
+        $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+        foreach ($measurements as $measurement)
+        {
+            $points = $this->cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
+            $output .= "
+            <div class='col-md-6'>
+                <div class='well text-center'>
+                    <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
+                    " . $measurement->Name . "
+                </div>
+            </div> ";
         }
 
-        public function getProgressPage()
+        if($output == "")
         {
-            $output = "";
-            $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
-            $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
-            $measurements = $this->cMeasurement->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-            foreach ($measurements as $measurement)
-            {
-                $points = $this->cMeasurement->getPoints($measurement->MeasurementID, $this->userID);
-                $output .= "
-                <div class='col-md-6'>
-                    <div class='well'>
-                        <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
-                        " . $measurement->Name . "<br>
+            $output = "Geen metingen gevonden voor deze behandeling";
+        }
+
+        $this->page = "voortgang";
+        $this->title = "Overzicht eigen gegevens";
+        $content = '
+        <div class="row">
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Metingen binnen deze behandeling
                     </div>
-                </div> ";
-            }
-
-            if($output == "")
-            {
-                $output = "Geen metingen gevonden voor deze behandeling";
-            }
-
-            $this->page = "voortgang";
-            $this->title = "Overzicht eigen gegevens";
-            $content = '
-            <div class="row">
-               <div class="col-md-4">
-                    Aantal metingen binnen deze behandeling: ' . $NumOfMeasurements .'
-                    <div class="row">
+                    <div class="panel-body">
+                        <div class="row">
                         ' . $output  .'
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-8">
+
+
+            </div>
+            <div class="col-md-8">
+                <div id="progressChart" style="height: 40rem;">
 
                 </div>
-            </div>';
+            </div>
+        </div>';
 
-    return $this->buildPage($content, false);
+return $this->buildPage($content, false);
 }
 
 }

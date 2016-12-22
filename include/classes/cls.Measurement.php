@@ -65,7 +65,7 @@ class Measurement extends DAL
 		return $result;
 	}
 
-	public function getPoints($measurementID, $userID)
+	public function getPointsByUserID($measurementID, $userID)
 	{
 		$measurementID = (int) $measurementID;
 		$userID = (int) $userID;
@@ -87,20 +87,7 @@ class Measurement extends DAL
 		return $result;
 	}
 
-	public function getMeasurementsbyTreatmentID($treatmentId)
-	{
-		$sql = "SELECT *
-				FROM MEASUREMENT
-				WHERE TreatmentID = :treatmentid";
-
-		$result = $this->query($sql, array(
-			":treatmentid" => array(
-				$treatmentId,
-				PDO::PARAM_INT),
-			));
-
-		return $result;
-	}
+	
 
 
 
