@@ -45,7 +45,7 @@ class FormInputs
      * 
      * @param string $name  Name of the text input
      */
-    public function addTextInput($name, $type = "text")
+    public function addTextInput($name, $columnNameTable, $type = "text")
     {
         $this->aInputs[] = array(
             'name' => $name,
@@ -53,7 +53,7 @@ class FormInputs
             'text' => '
                 <label for="input' . $name . '" class="col-lg-' . $this->wLabel . ' control-label">' . $name . '</label>
                 <div class="col-lg-' . $this->wInput . '">
-                    <input type="' . $type . '" class="form-control" id="input-' . $name . '" name="input-' . $name . '" placeholder="' . $name . '">
+                    <input type="' . $type . '" class="form-control" id="input-' . $name . '" name="input-' . $name . '" data-column="' . $columnNameTable . '" placeholder="' . $name . '" required>
                 </div>
             ');
     }
@@ -63,7 +63,7 @@ class FormInputs
      * 
      * @param string $name
      */
-    public function addTextArea($name)
+    public function addTextArea($name, $columnNameTable)
     {
         $this->aInputs[] = array(
             'name' => $name,
@@ -71,7 +71,7 @@ class FormInputs
             'text' => '
                 <label for="input' . $name . '" class="col-lg-' . $this->wLabel . ' control-label">' . $name . '</label>
                 <div class="col-lg-' . $this->wInput . '">
-                    <textarea class="form-control" id="input-' . $name . '" name="input-' . $name . '" placeholder="' . $name . '"></textarea>
+                    <textarea class="form-control" id="input-' . $name . '" name="input-' . $name . '" data-column="' . $columnNameTable . '" placeholder="' . $name . '" required></textarea>
                 </div>
             ');
     }
@@ -82,7 +82,7 @@ class FormInputs
      * @param string $name      Name of the radioGroup
      * @param array $aValues    Values of the radio buttons
      */
-    public function addRadioGroup($name, $aValues)
+    public function addRadioGroup($name, $columnNameTable, $aValues)
     {
         $radios = '';
         $i = 1;
@@ -91,7 +91,7 @@ class FormInputs
             $radios .= '
                 <div class="radio">
                     <label>
-                        <input type="radio" name="radio-' . $name . '" id="radio-' . $name . '-' . $i++ . '" value="' . $val . '"> ' . $val . '
+                        <input type="radio" name="radio-' . $name . '" id="radio-' . $name . '-' . $i++ . '" data-column="' . $columnNameTable . '" value="' . $val . '" required> ' . $val . '
                     </label>
                 </div>
             ';
@@ -155,7 +155,7 @@ class FormInputs
                         ';
             if ($this->btnReset)
             {
-                $return .= '<button type="reset" class="btn btn-default">' . $this->btnReset . '</button> ';
+                $return .= '<button type="reset" class="btn btn-default btnReset">' . $this->btnReset . '</button> ';
             }
             $return .= $text . '
                     </div>

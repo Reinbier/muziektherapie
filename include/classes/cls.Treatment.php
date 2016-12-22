@@ -46,11 +46,19 @@ class Treatment extends DAL
 		return $result;
 	}
 
-	public function getMeasurementsByTreatmentID($treatmentID)
+	public function getMeasurementsbyTreatmentID($treatmentId)
 	{
 		$sql = "SELECT *
 				FROM MEASUREMENT
-				WHERE TreatmentID = :treatmentID";
+				WHERE TreatmentID = :treatmentid";
+
+		$result = $this->query($sql, array(
+			":treatmentid" => array(
+				$treatmentId,
+				PDO::PARAM_INT),
+			));
+
+		return $result;
 	}
 
 }

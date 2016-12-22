@@ -3,14 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/js/main.js</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/ajax/client.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.DAL.php</file>
-            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/config/conf.config.php</file>
-            <file>file:/C:/Users/Reinier/Documents/muziektherapie/.htaccess</file>
-            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Page.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.LayoutLogin.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/index.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/ajax/therapist.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.User.php</file>
-            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Login.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.FormInputs.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.LayoutTherapist.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/AanmakenCliënt.html</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/ajax/questionlist.php</file>
         </group>
     </open-files>
 </project-private>

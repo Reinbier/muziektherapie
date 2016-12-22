@@ -10,28 +10,32 @@
  */
 
 
-$(document).ready(function () {
+ $(document).ready(function () {
 
+    if ($('#progressChart').length)
+    {
+        drawGraph();
+    }
+   
+    // catch every button-click
     $(document).on('click', 'button[type="submit"]', function (e) {
 
+        // do stuff only for ajax buttons
         if (!$(this).hasClass('nonajax'))
         {
-            // prevent default 'submit-action'
-            e.preventDefault();
-
             // create initial array with vars
-            var parameters = {url: null, data: null};
+            var parameters = null;
 
             switch ($(this).attr('id'))
             {
                 case 'button-createTherapist':
-                    parameters = createTherapist();
-                    break;
+                parameters = createTherapist();
+                break;
                 case '':
-                    break;
+                break;
             }
 
-            if (parameters.url !== null)
+            if (parameters !== null)
             {
                 // process request via AJAX
                 var request = $.ajax({
@@ -42,6 +46,7 @@ $(document).ready(function () {
                 });
                 request.done(function (msg) {
                     displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
+                    $(".btnReset").trigger("click");
                 });
                 request.fail(function (jqXHR, textStatus) {
                     displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
@@ -52,23 +57,22 @@ $(document).ready(function () {
 
 });
 
+
 function createTherapist()
 {
-    var therapistData = {
-        Name: $("#createTherapistForm").find("#input-Naam").val(),
-        Address: $("#createTherapistForm").find("#input-Adres").val(),
-        Place: $("#createTherapistForm").find("#input-Woonplaats").val(),
-        Phone: $("#createTherapistForm").find("#input-Telefoon").val(),
-        Gender: $("#createTherapistForm").find("input[name=radio-Geslacht]:checked").val()
-    };
-    
-    return {
-        url: '/include/ajax/therapist.php',
-        data: {
-            action: JSON.stringify('create'),
-            therapistParams: JSON.stringify(therapistData)
-        }
-    };
+    if ($("#createTherapistForm")[0].checkValidity())
+    {
+        var therapistData = getAllInputData("createTherapistForm");
+
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('create'),
+                therapistParams: JSON.stringify(therapistData)
+            }
+        };
+    }
+    return null;
 }
 
 function displayPopup(title, body, footer)
@@ -79,4 +83,55 @@ function displayPopup(title, body, footer)
     $('.modal-footer').html(footer);
     // show the modal
     $('.modal').modal('toggle');
+}
+
+function getAllInputData(formID)
+{
+    // create an empty erray for input parameters
+    var inputParams = {};
+    // for each input or textarea within the form, get the name of the column (corresponding with the name in the table)
+    // and save its value
+    $("#" + formID + " input,textarea").each(function () {
+
+        // get column from data attribute
+        var column = $(this).data("column");
+        
+        
+        // for radio buttons, only get the checked value of course
+        if ($(this).is("input:radio"))
+        {
+            var name = $(this).attr("name")
+            inputParams[column] = $("input[name=" + name + "]:checked").val();
+        } else // text or textarea get values
+        {
+            inputParams[column] = $(this).val();
+        }
+    });
+    // return the array of parameters
+    return inputParams;
+}
+
+function drawGraph()
+{
+   var request = $.ajax({
+        url: "/include/ajax/client.php",
+        type: "POST",
+        data: {action: JSON.stringify("drawGraph")},
+        dataType: "json",
+
+    });
+   request.done(function (msg) {
+        new Morris.Line({
+            element: 'progressChart',
+            data: msg,
+            xkey: 'measurement',
+            parseTime: false,
+            ykeys: ['points'],
+            labels: ['score'],
+            padding: 50,
+        });
+    });
+    request.fail(function (jqXHR, textStatus) {
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+    });
 }
