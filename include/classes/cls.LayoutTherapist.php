@@ -173,11 +173,6 @@ class LayoutTherapist extends Layout
         $cForm->addResetButton();
         $formBody = $cForm->createFormBody();
         
-        $tablefield = $this->getFieldsOfTable("USER");
-        echo"<pre>";
-        print_r($tablefield);
-        echo"</pre>";
-        
         $content = '
             <div class="well">
                 <form class="form-horizontal" id="createTherapistForm" onsubmit="return false">
