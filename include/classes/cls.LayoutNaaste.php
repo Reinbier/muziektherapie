@@ -75,14 +75,16 @@ class LayoutNaaste extends Layout
     
     public function insertQuestionList($questionlistID)
     {
-        
+       
         $return ='
             <div class="container-fluid">
                 
                     <div class="row">
                         <div class="col-md-10 col-md-offset-1 well">
                             <h3>Vragenlijst: </h3>
-                            
+                            ';
+                                
+        '
                         </div>
 
                     </div>
@@ -90,5 +92,7 @@ class LayoutNaaste extends Layout
                 </div>
 
         ';
+        return $this->getHeader() . parent::getContent($return) . $this->getFooter();
     }
+   
 }
