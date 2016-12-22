@@ -12,16 +12,16 @@ Class Question extends DAL {
     public function __construct($answerID) {
         parent::__construct();
 
-        $this->answerID = $answerID;
+        $this->QuestionID = $answerID;
     }
 
     /**
-     * Method for retrieving answer data
+     * Method for retrieving question data
      * 
-     * @param int $answerID
+     * @param int $questionID
      * @return object
      */
-    public function getanswer($answerID) {
+    public function getAnswer($answerID) {
         $sql = "SELECT *
                 FROM QUESTION
                 WHERE QuestionID = :answerid";
@@ -33,10 +33,7 @@ Class Question extends DAL {
     }
 
    
-   /**
-    *  Method for inserting a possible answer into the database,
-    *   based on a specific questionid 
-    */
+    
     public function possibleAnswer()
     {
         $sql = "INSERT INTO ANSWER (PossibleAnswerID, QuestionID,MeasurementID,UserID,Answer)
@@ -77,7 +74,24 @@ Class Question extends DAL {
             }
         
     }
+    
+    public function getPoints()
+    {
+        $sql = "SELECT Points
+                FROM POSSIBLE_ANSWER a, ANSWER b
+                WHERE a.PossibleAnswerID = b.PossibleAnswerID
+                AND a.PossibleAnswerID = :possibleanswerid
+                AND b.PossibleAnswerID = :possibleanswerid";
+        $result = $this->query($sql, array(
+            ":possibleanswerid" => array($this->answerID, PDO::PARAM_INT)
+        ));
 
+        if (!is_null($result))
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 ?>
