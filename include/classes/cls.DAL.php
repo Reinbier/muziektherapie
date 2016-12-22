@@ -6,9 +6,9 @@
  * 
  * Data Access Layer
  */
-
 class DAL
 {
+
     private $link;
     private $server, $userName, $password, $db;
     private $lastQueryResult, $lastMysqlError, $lastQuery;
@@ -22,7 +22,7 @@ class DAL
         $this->lastQueryResult = null;
         $this->lastMysqlError = null;
         $this->lastQuery = null;
-        
+
         // start connection with db
         $this->connection();
     }
@@ -31,7 +31,7 @@ class DAL
     {
         try
         {
-            $this->link = new PDO("mysql:host=".$this->server.";dbname=".$this->db.";charset=utf8", $this->userName, $this->password);
+            $this->link = new PDO("mysql:host=" . $this->server . ";dbname=" . $this->db . ";charset=utf8", $this->userName, $this->password);
             // set the PDO error mode to exception
             $this->link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
@@ -76,7 +76,6 @@ class DAL
     {
         // do nothing
     }
-    
 
     //xss mitigation functions
     public function xssafe($data, $encoding = 'UTF-8')
@@ -106,19 +105,19 @@ class DAL
         {
             // prepare sql
             $stmt = $pdo->prepare($sql);
-            if(!$stmt)
+            if (!$stmt)
             {
                 throw new Error;
             }
             // bind params
             if (!is_null($aParams))
             {
-                if(is_array($aParams))
+                if (is_array($aParams))
                 {
                     foreach ($aParams as $paramName => $param) // bind parameters to the query
                     {
                         // if the param is an array, the the datatype has also been given
-                        if(is_array($param))
+                        if (is_array($param))
                         {
                             $stmt->bindParam($this->xssafe($paramName), $param[0], $param[1]);
                         }
@@ -134,7 +133,7 @@ class DAL
                 }
             }
             // execute for result
-            if(!$stmt->execute())
+            if (!$stmt->execute())
             {
                 throw new Error;
             }
@@ -149,7 +148,7 @@ class DAL
                     $res = ($count === "one" ? $stmt->fetch($flag === "array" ? PDO::FETCH_ASSOC : PDO::FETCH_OBJ) : ($count === "column" ? $stmt->fetchColumn() : $stmt->fetchAll($flag === "array" ? PDO::FETCH_ASSOC : PDO::FETCH_OBJ)));
                 }
             }
-            
+
             // save errors and results
             $this->lastQueryResult = $res;
             $this->lastQuery = $sql;
@@ -167,10 +166,10 @@ class DAL
                 $this->close($pdo);
                 return true;
             }
-            
-            
-                // close the PDO
-                $this->close($pdo);
+
+
+            // close the PDO
+            $this->close($pdo);
 
             // result failed
             if (!$res)
@@ -209,7 +208,7 @@ class DAL
         $this->close($pdo);
         return false;
     }
-    
+
     /**
      * Returns a string of a field prepared for AES_DECRYPTION.
      * 
@@ -220,7 +219,7 @@ class DAL
     {
         return "AES_DECRYPT(" . $field . ", '" . SALT . "') AS " . $field;
     }
-    
+
     /**
      * Returns a string of a value prepared for AES_ENCRYPTION.
      * 
@@ -231,7 +230,7 @@ class DAL
     {
         return "AES_ENCRYPT(" . $value . ", '" . SALT . "')";
     }
-    
+
     /**
      * Returns a string of multiple fields prepared for AES_DECRYPTION
      * 
@@ -242,16 +241,16 @@ class DAL
     protected function getFieldsAsDecryptedString($fields, $checkType = false)
     {
         $string = "";
-        foreach($fields as $field => $value)
+        foreach ($fields as $field => $value)
         {
-            if($string !== "")
+            if ($string !== "")
             {
                 $string .= ", ";
             }
-            
-            if($checkType)
+
+            if ($checkType)
             {
-                if($value == "varbinary(150)")
+                if ($value == "varbinary(150)")
                 {
                     $string .= $this->getDecryptFieldString($field);
                 }
@@ -267,7 +266,7 @@ class DAL
         }
         return $string;
     }
-    
+
     /**
      * Returns an array of fields in the format: fieldName => Type( = MySQL dataType).
      * 
@@ -287,7 +286,7 @@ class DAL
         }
         return $return;
     }
-    
+
     /**
      * Returns a string of all fields of a table prepared for AES_DECRYPTION
      * 
@@ -299,4 +298,52 @@ class DAL
         $fields = $this->getFieldsOfTable($tableName);
         return $this->getFieldsAsDecryptedString($fields, true);
     }
+
+    /**
+     * This method is for dynamically inserting a record into the DB,
+     * based on the table and the parameters given.
+     * 
+     * @param string $table     Table name
+     * @param array $aParams    Example: array(ColumnNameOfTable_1 => ValueToBeInserted_1, ColumnNameOfTable_2 => ValueToBeInserted_2)
+     * @return int              The inserted ID
+     */
+    protected function insert($table, $aParams)
+    {
+        // prepare vars
+        $fields = ""; // fields of table that will be inserted
+        $values = ""; // values of these fields
+        $aQueryParams = array(); // parameters for PDO's bindParam
+        
+        // get field specifations of the table to see when to use encryption
+        $tableFields = $this->getFieldsOfTable($table);
+
+        // loop through the given array
+        foreach ($aParams as $columnName => $value)
+        {
+            // insert into fields
+            $fields .= ($fields === "" ? $columnName : ", " . $columnName);
+
+            // check if this value needs to be encrypted based on datatype of field
+            if ($tableFields[$columnName] == "varbinary(150)")
+            {
+                $values .= ($values === "" ? $this->getEncryptValueString(":" . $columnName) : ", " . $this->getEncryptValueString(":" . $columnName));
+            }
+            else // do not encrypt value
+            {
+                $values .= ($values === "" ? ":" . $columnName : ", " . $columnName);
+            }
+            
+            // add parameter to the array for PDO's bindParam
+            $aQueryParams[":" . $columnName] = array($value, (is_numeric($value) ? PDO::PARAM_INT : PDO::PARAM_STR));
+        }
+
+        // create the insert query
+        $sql = "INSERT INTO " . $table . " (" . $fields . ")
+                VALUES (" . $values . ")";
+        $insertedID = $this->query($sql, $aQueryParams);
+
+        // return the insertedID
+        return $insertedID;
+    }
+
 }

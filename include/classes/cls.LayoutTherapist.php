@@ -162,20 +162,25 @@ class LayoutTherapist extends Layout
     {
         $this->title = "Therapeut aanmaken";
         $cForm = new FormInputs();
-        $cForm->addTextInput("Naam");
-        $cForm->addTextInput("Adres");
-        $cForm->addTextInput("Woonplaats");
-        $cForm->addTextInput("Telefoon");
-        $cForm->addTextInput("Email");
-        $cForm->addTextInput("Wachtwoord", "password");
-        $cForm->addRadioGroup("Geslacht", array("Man", "Vrouw"));
+        $cForm->addTextInput("Naam", "Name");
+        $cForm->addTextInput("Adres", "Address");
+        $cForm->addTextInput("Woonplaats", "Place");
+        $cForm->addTextInput("Telefoon", "Phone");
+        $cForm->addTextInput("Email", "Email");
+        $cForm->addTextInput("Wachtwoord", "Password", "password");
+        $cForm->addRadioGroup("Geslacht", "Gender", array("Man", "Vrouw"));
         $cForm->addButton("createTherapist", "Aanmaken");
         $cForm->addResetButton();
         $formBody = $cForm->createFormBody();
         
+        $tablefield = $this->getFieldsOfTable("USER");
+        echo"<pre>";
+        print_r($tablefield);
+        echo"</pre>";
+        
         $content = '
             <div class="well">
-                <form class="form-horizontal" id="createTherapistForm">
+                <form class="form-horizontal" id="createTherapistForm" onsubmit="return false">
                     <fieldset>
                         <legend>Algemeen</legend>
                         ' . $formBody . '

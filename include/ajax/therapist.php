@@ -12,10 +12,10 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/include/config/conf.config.php');
 if (isset($_REQUEST["action"]))
 {
     $action = stripslashes(json_decode($_REQUEST["action"]));
-    $userParams = stripslashes(json_decode($_REQUEST["therapistParams"]));
     
     if($action === "create")
     {
+        $userParams = json_decode($_REQUEST["therapistParams"], true);
         $cUser = new User;
         
         $result = $cUser->insertUser($userParams, "Therapeut");
@@ -24,7 +24,10 @@ if (isset($_REQUEST["action"]))
                 array(
                     "title" => "Succes!", 
                     "text" => "De therapeut is aangemaakt", 
-                    "buttons" => "<button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>"
+                    "buttons" => "<button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>",
+                    "lastQuery" => $cUser->getLastQuery(),
+                    "lastResult" => $cUser->getLastQueryResult(),
+                    "lastMysqlError" => $cUser->getLastMysqlError()
                 )
             );
     }
