@@ -113,23 +113,34 @@ function getAllInputData(formID)
 
 function drawGraph()
 {
-   var request = $.ajax({
+    var request = $.ajax({
         url: "/include/ajax/client.php",
         type: "POST",
         data: {action: JSON.stringify("drawGraph")},
         dataType: "json",
 
     });
-   request.done(function (msg) {
-        new Morris.Line({
-            element: 'progressChart',
-            data: msg,
-            xkey: 'measurement',
-            parseTime: false,
-            ykeys: ['points'],
-            labels: ['score'],
-            padding: 50,
-        });
+    request.done(function (msg) {
+        if(msg.status == "ok")
+        {
+            new Morris.Line({
+                element: 'progressChart',
+                data: msg,
+                xkey: 'measurement',
+                parseTime: false,
+                ykeys: ['points'],
+                labels: ['score'],
+                padding: 50,
+            });
+        }
+        else
+        {
+            $('#progressChart').html(
+                '<div class="alert alert-info">'+ 
+                msg.message +
+                '</div>'
+            );
+        }
     });
     request.fail(function (jqXHR, textStatus) {
         displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');

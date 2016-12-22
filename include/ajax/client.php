@@ -23,7 +23,7 @@ if (isset($_REQUEST['action']))
 		$roleName = $cRole->getRoleByUserID($userID);
 
 		if ($roleName === 'Therapeut') {
-		
+			
 		}
 		else
 		{
@@ -31,15 +31,35 @@ if (isset($_REQUEST['action']))
 			$treatment = $cTreatment->getTreatmentByUserID($userID);
 
 			$measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-	        foreach ($measurements as $measurement)
-	        {
-            	$points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
-            	$name = $measurement->Name;
+			if ($measurements) {
+		        foreach ($measurements as $measurement)
+		        {
+	            	$points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
+	            	$name = $measurement->Name;
 
-            	$aParams[] = array("measurement" => $name, "points" => $points);
+	            	$aParams[] = array("measurement" => $name, "points" => $points);
+		        }
+			}
+			if (!empty($aParams))
+			{
+	        	echo 
+	        	json_encode(
+	        		array(
+	        			"status" => "ok",
+	        			"result" => $aParams,
+	        			)
+        		);			
 	        }
-
-	        echo json_encode($aParams);			
+	        else 
+	        {
+	        	echo 
+	        	json_encode(
+	        		array(
+	        			"status" => "error",
+	        			"message" => "Er zijn geen resultaten gevonden",
+	        			)
+        		);	
+	        }	        
 		}
 	}
 }

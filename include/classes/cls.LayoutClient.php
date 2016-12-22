@@ -86,9 +86,9 @@ class LayoutClient extends Layout
 
     public function getHeader()
     {
-        $return = parent::getHeader();
+        $header = parent::getHeader();
 
-        $return .= '
+        $header .= '
         <nav class="navbar navbar-default">
             <div class="container-fluid">
                 <div class="navbar-header">
@@ -115,7 +115,7 @@ class LayoutClient extends Layout
             </div>
         </nav>
         ';
-        return $return;
+        return $header;
     }
 
     public function getHomePage()
@@ -143,21 +143,25 @@ class LayoutClient extends Layout
         $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
         $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
         $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-        foreach ($measurements as $measurement)
+        
+        if ($measurements) 
         {
-            $points = $this->cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
-            $output .= "
-            <div class='col-md-6'>
-                <div class='well text-center'>
-                    <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
-                    " . $measurement->Name . "
-                </div>
-            </div> ";
+            foreach ($measurements as $measurement)
+            {
+                $points = $this->cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
+                $output .= "
+                <div class='col-md-6'>
+                    <div class='well text-center'>
+                        <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
+                        " . $measurement->Name . "
+                    </div>
+                </div> ";
+            }
         }
 
         if($output == "")
         {
-            $output = "Geen metingen gevonden voor deze behandeling";
+            $output = "<div class='col-md-12'>Geen metingen gevonden voor deze behandeling</div>";
         }
 
         $this->page = "voortgang";
