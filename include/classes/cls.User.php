@@ -94,16 +94,20 @@ class User extends DAL
 
     public function insertUser($aParams, $role)
     {
-        
-        $sql = "INSERT INTO USER (Name, Address, Place, Phone, Gender)
-                VALUES (:name, :adres, :place, :phone, :gender)";
-        $insertedID = $this->query($sql, array(
-            ":name" => array($this->getEncryptValueString($aParams["Name"]), PDO::PARAM_STR),
-            ":adres" => array($this->getEncryptValueString($aParams["Address"]), PDO::PARAM_STR),
-            ":place" => array($this->getEncryptValueString($aParams["Place"]), PDO::PARAM_STR),
-            ":phone" => array($this->getEncryptValueString($aParams["Phone"]), PDO::PARAM_STR),
-            ":gender" => array($this->getEncryptValueString($aParams["Gender"]), PDO::PARAM_STR)
-        ));
+        $fields = "";
+        $values = "";
+        $aQueryParams = array();
+
+        foreach ($aParams as $columnName => $value)
+        {
+            $fields .= ($fields === "" ? $columnName : ", " . $columnName);
+            $values .= ($values === "" ? $this->getEncryptValueString(":" . $columnName) : ", " . $this->getEncryptValueString(":" . $columnName));
+            $aQueryParams[":" . $columnName] = array($value, PDO::PARAM_STR);
+        }
+
+        $sql = "INSERT INTO USER (" . $fields . ")
+                VALUES (" . $values . ")";
+        $insertedID = $this->query($sql, $aQueryParams);
 
         // add role to the user
         return $this->insertUserRole($insertedID, $role);
@@ -114,8 +118,8 @@ class User extends DAL
         $sql = "INSERT INTO USER_ROLE (RoleID, UserID)
                 VALUES (:roleid, :userid)";
         return $this->query($sql, array(
-                    ":roleid" => array($this->getRoleIDByName($roleName), PDO::PARAM_STR),
-                    ":userid" => array($this->getEncryptValueString($userID), PDO::PARAM_STR)
+                    ":roleid" => array($this->getRoleIDByName($roleName), PDO::PARAM_INT),
+                    ":userid" => array($userID, PDO::PARAM_INT)
         ));
     }
 

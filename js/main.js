@@ -16,20 +16,15 @@
     {
         drawGraph();
     }
-    
-    
-
+   
     // catch every button-click
     $(document).on('click', 'button[type="submit"]', function (e) {
 
         // do stuff only for ajax buttons
         if (!$(this).hasClass('nonajax'))
         {
-            // prevent default 'submit-action'
-            e.preventDefault();
-
             // create initial array with vars
-            var parameters = {url: null, data: null};
+            var parameters = null;
 
             switch ($(this).attr('id'))
             {
@@ -40,7 +35,7 @@
                 break;
             }
 
-            if (parameters.url !== null)
+            if (parameters !== null)
             {
                 // process request via AJAX
                 var request = $.ajax({
@@ -51,6 +46,7 @@
                 });
                 request.done(function (msg) {
                     displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
+                    $(".btnReset").trigger("click");
                 });
                 request.fail(function (jqXHR, textStatus) {
                     displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
@@ -61,17 +57,22 @@
 
 });
 
- function createTherapist()
- {
-    var therapistData = getAllInputData("createTherapistForm");
 
-    return {
-        url: '/include/ajax/therapist.php',
-        data: {
-            action: JSON.stringify('create'),
-            therapistParams: JSON.stringify(therapistData)
-        }
-    };
+function createTherapist()
+{
+    if ($("#createTherapistForm")[0].checkValidity())
+    {
+        var therapistData = getAllInputData("createTherapistForm");
+
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('create'),
+                therapistParams: JSON.stringify(therapistData)
+            }
+        };
+    }
+    return null;
 }
 
 function displayPopup(title, body, footer)
@@ -95,13 +96,13 @@ function getAllInputData(formID)
         // get column from data attribute
         var column = $(this).data("column");
         
+        
         // for radio buttons, only get the checked value of course
-        if($(this).is("input:radio"))
+        if ($(this).is("input:radio"))
         {
             var name = $(this).attr("name")
-            inputParams[column] = $("input[name=" + name +"]:checked").val();
-        }
-        else // text or textarea get values
+            inputParams[column] = $("input[name=" + name + "]:checked").val();
+        } else // text or textarea get values
         {
             inputParams[column] = $(this).val();
         }
@@ -110,49 +111,27 @@ function getAllInputData(formID)
     return inputParams;
 }
 
-/*function drawGraph()
-{
-    new Morris.Area({
-        element: 'progressChart',
-        data: [
-            {measurement: '2008', points: 20},
-            {measurement: '2009', points: 10},
-            {measurement: '2010', points: 5},
-            {measurement: '2011', points: 5},
-            {measurement: '2012', points: 20},
-            {measurement: '2013', points: 5},
-            {measurement: '2014', points: 5},
-            {measurement: '2015', points: 20},
-        ],
-
-
-        xkey: 'measurement',
-        ykeys: ['points'],
-        labels: ['punten']
-    });
-}
-*/
 function drawGraph()
 {
- var request = $.ajax({
-    url: "/include/ajax/client.php",
-    type: "POST",
-    data: {action: JSON.stringify("drawGraph")},
-    dataType: "json",
+   var request = $.ajax({
+        url: "/include/ajax/client.php",
+        type: "POST",
+        data: {action: JSON.stringify("drawGraph")},
+        dataType: "json",
 
-});
- request.done(function (msg) {
-    new Morris.Line({
-        element: 'progressChart',
-        data: msg,
-        xkey: 'measurement',
-        parseTime: false,
-        ykeys: ['points'],
-        labels: ['score'],
-        padding: 50,
     });
-});
- request.fail(function (jqXHR, textStatus) {
-    displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
-});
+   request.done(function (msg) {
+        new Morris.Line({
+            element: 'progressChart',
+            data: msg,
+            xkey: 'measurement',
+            parseTime: false,
+            ykeys: ['points'],
+            labels: ['score'],
+            padding: 50,
+        });
+    });
+    request.fail(function (jqXHR, textStatus) {
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+    });
 }
