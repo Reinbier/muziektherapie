@@ -21,7 +21,7 @@ Class Answer extends DAL {
      * @param int $answerID
      * @return object
      */
-    public function getanswer($answerID) {
+    public function getAnswer($answerID) {
         $sql = "SELECT *
                 FROM QUESTION
                 WHERE QuestionID = :answerid";
@@ -77,7 +77,24 @@ Class Answer extends DAL {
             }
         
     }
+    
+    public function getPoints()
+    {
+        $sql = "SELECT Points
+                FROM POSSIBLE_ANSWER a, ANSWER b
+                WHERE a.PossibleAnswerID = b.PossibleAnswerID
+                AND a.PossibleAnswerID = :possibleanswerid
+                AND b.PossibleAnswerID = :possibleanswerid";
+        $result = $this->query($sql, array(
+            ":possibleanswerid" => array($this->answerID, PDO::PARAM_INT)
+        ));
 
+        if (!is_null($result))
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 ?>
