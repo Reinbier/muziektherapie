@@ -13,6 +13,8 @@ class LayoutClient extends Layout
     private $cUser;
     private $cTreatment;
     private $cMeasurement;
+    private $cAnswer;
+    private $cQuestionList;
 
     public function __construct($userID)
     {
@@ -203,6 +205,7 @@ class LayoutClient extends Layout
         $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
 
         $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+        $cQuestionList = new QuestionList();
 
         $cAnswer = new Answer();
 
