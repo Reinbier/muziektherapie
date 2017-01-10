@@ -24,7 +24,8 @@ class LayoutClient extends Layout
     }
 
     private function buildPage($content = "No content found..", $sidebar = true)
-    {
+    {   
+        $breadcrumbs = $this->getBreadcrumbs();
         if($sidebar)
         {
             // build the page with the sidebar
@@ -33,7 +34,8 @@ class LayoutClient extends Layout
                 <div class="col-md-12 lead">
                     <h2>' . $this->title . '</h2>
                 </div>
-            </div> 
+            </div>
+            '. $breadcrumbs .' 
             <div class="row">
 
                 <div class="col-md-3">
@@ -55,7 +57,8 @@ class LayoutClient extends Layout
                 <div class="col-md-12 lead">
                     <h2>' . $this->title . '</h2>
                 </div>
-            </div>  
+            </div> 
+            '. $breadcrumbs .'  
             <div class="row">
 
                 <div class="col-md-12">
@@ -105,7 +108,7 @@ class LayoutClient extends Layout
                     <ul class="nav navbar-nav">
                         <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
                         <li ' . ($this->page == "voortgang" ? 'class="active"' : '') . '><a href="/voortgang/">Voortgang</a></li>
-                        <li ' . ($this->page == "vragenlijst" ? 'class="active"' : '') . '><a href="/vragenlijst/">Vragenlijst</a></li>
+                        <li ' . ($this->page == "vragenlijst" ? 'class="active"' : '') . '><a href="/vragenlijst/">Vragenlijsten</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li class="navbar-text">Ingelogd als '. $this->cUser->getUserById($this->userID)->Name .'</li>
@@ -140,8 +143,11 @@ class LayoutClient extends Layout
     public function getProgressPage()
     {
         $output = "";
+        
         $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
+        
         $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
+        
         $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
         
         if ($measurements) 
@@ -188,7 +194,65 @@ class LayoutClient extends Layout
             </div>
         </div>';
 
-return $this->buildPage($content, false);
-}
+        return $this->buildPage($content, false);
+    }
+
+    public function getQuestionListPage()
+    {
+
+        $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
+
+        $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+
+        $cAnswer = new Answer();
+
+        if (!$measurements)
+        {
+            $output = "Geen vragenlijsten die nog open staan";
+        }
+        else
+        {
+            $output = '';
+            foreach ($measurements as $measurement)
+            {   
+                $questionlistID = $measurement->QuestionlistID;
+
+                $questionlist = $cQuestionList->getQuestionList($questionlistID);
+
+                die(var_dump($questionlist));
+                $complete = $cAnswer->checkAnswers($this->userID, $measurement->MeasurementID);
+                if ($complete)
+                {
+                    $output .= 
+                        '<div class="col-md-4">
+                            
+                        </div>';
+                }
+                else
+                {
+                    $output .= 
+                        '<div class="col-md-4">
+
+                        </div>';
+                }
+                
+                $output .= "</div>";   
+            }
+
+            
+        }
+
+        $this->page = "vragenlijst";
+        $this->title = "Vragenlijsten";
+
+        $content = '
+        <div class="row">
+            <div class="col-md-4">
+                '. $output .' 
+            </div>
+        </div>';
+
+        return $this->buildPage($content, false);
+    }
 
 }

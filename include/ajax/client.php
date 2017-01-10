@@ -28,9 +28,11 @@ if (isset($_REQUEST['action']))
 		else
 		{
 			$aParams = array();
+
 			$treatment = $cTreatment->getTreatmentByUserID($userID);
 
 			$measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+
 			if ($measurements) {
 		        foreach ($measurements as $measurement)
 		        {

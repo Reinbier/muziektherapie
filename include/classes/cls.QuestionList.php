@@ -76,6 +76,20 @@ class QuestionList extends DAL
 
 		return $result;
 	}
+
+    public function getQuestionList($questionlistID)
+    {
+        $sql = "SELECT *
+                FROM QuestionList
+                WHERE QuestionlistID = :questionlistID";
+
+        $list = $this->sql($sql, array(
+            ":questionListID" => array(),
+            )
+
+        return $list;
+        );
+    }
         
         
 }	

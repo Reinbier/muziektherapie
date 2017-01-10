@@ -10,13 +10,20 @@
  */
 
 
- $(document).ready(function () {
+$(document).ready(function () {
+
+    // assign datetimepicker functionality to the date-forminputs
+    $('.datetimepicker').datetimepicker({
+        locale: 'nl',
+        format: 'DD-MM-YYYY',
+        allowInputToggle: true
+    });
 
     if ($('#progressChart').length)
     {
         drawGraph();
     }
-   
+
     // catch every button-click
     $(document).on('click', 'button[type="submit"]', function (e) {
 
@@ -29,10 +36,13 @@
             switch ($(this).attr('id'))
             {
                 case 'button-createTherapist':
-                parameters = createTherapist();
-                break;
+                    parameters = createTherapist();
+                    break;
+                case 'button-createClient':
+                    parameters = createClient();
+                    break;
                 case '':
-                break;
+                    break;
             }
 
             if (parameters !== null)
@@ -95,16 +105,19 @@ function getAllInputData(formID)
 
         // get column from data attribute
         var column = $(this).data("column");
-        
-        
+
         // for radio buttons, only get the checked value of course
         if ($(this).is("input:radio"))
         {
             var name = $(this).attr("name")
             inputParams[column] = $("input[name=" + name + "]:checked").val();
-        } else // text or textarea get values
+        } 
+        else // text or textarea get values
         {
-            inputParams[column] = $(this).val();
+            if(!($(this).val() == "")) // check for empty, because not every field is mandatory
+            {
+                inputParams[column] = $(this).val();
+            }
         }
     });
     // return the array of parameters
@@ -118,7 +131,6 @@ function drawGraph()
         type: "POST",
         data: {action: JSON.stringify("drawGraph")},
         dataType: "json",
-
     });
     request.done(function (msg) {
         if(msg.status == "ok")
@@ -136,13 +148,13 @@ function drawGraph()
         else
         {
             $('#progressChart').html(
-                '<div class="alert alert-info">'+ 
-                msg.message +
+                '<div class="alert alert-info">' +
+                    msg.message +
                 '</div>'
             );
         }
     });
     request.fail(function (jqXHR, textStatus) {
-        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E502)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
     });
 }

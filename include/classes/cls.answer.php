@@ -7,12 +7,8 @@
 
 Class Answer extends DAL {
 
-    private $answerID;
-
-    public function __construct($answerID) {
+    public function __construct() {
         parent::__construct();
-
-        $this->QuestionID = $answerID;
     }
 
     /**
@@ -91,6 +87,32 @@ Class Answer extends DAL {
             return true;
         }
         return false;
+    }
+
+    public function checkAnswers($UserID, $measurementid)
+    {
+        $sql = "SELECT * 
+                FROM ANSWER
+                WHERE UserID = :userid
+                AND MeasurementID = :measurementid";
+
+        $answers = $this->query($sql, array(
+            ":userid" => array($UserID, PDO::PARAM_INT),
+            ":measurementid" => array($measurementid, PDO::PARAM_INT),
+            )
+        );
+
+        if ($answers)
+        {
+            foreach ($answers as $answer)
+            {
+                if (!$answer->PossibleAnswerID && !$answer->Answer) {
+                    return false;
+                }
+                
+            }
+            return true;
+        }
     }
 }
 

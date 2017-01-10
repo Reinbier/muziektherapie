@@ -37,7 +37,7 @@ class Treatment extends DAL
 				FROM TREATMENT_USER a, TREATMENT b
 				WHERE a.UserID = :userID
 				AND a.TreatmentID = b.TreatmentID
-				AND b.Actief = 1";
+				AND b.Active = 1";
 
 		$result = $this->query($sql, array(
 			":userID" => array($userID, PDO::PARAM_INT)),
