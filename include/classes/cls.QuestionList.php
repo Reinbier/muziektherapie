@@ -70,7 +70,7 @@ class QuestionList extends DAL
 				WHERE QuestionlistID = :questionlistID";
 
 		$result = $this->query($sql, array(
-			":questionlistID" => array($questionlistID, PDO::PARAM_INT),
+			":questionlistID" => array($questionListID, PDO::PARAM_INT),
 			)
 		);
 
@@ -79,16 +79,17 @@ class QuestionList extends DAL
 
     public function getQuestionList($questionlistID)
     {
-        $sql = "SELECT *
-                FROM QuestionList
-                WHERE QuestionlistID = :questionlistID";
+        $sql = "SELECT Name
+                FROM QUESTIONLIST
+                WHERE QuestionlistID = :questionListID";
 
-        $list = $this->sql($sql, array(
-            ":questionListID" => array(),
-            )
+        $list = $this->query($sql, array(
+            ":questionListID" => array($questionlistID, PDO::PARAM_INT),
+            ),
+            "column"
+        );
 
         return $list;
-        );
     }
         
         

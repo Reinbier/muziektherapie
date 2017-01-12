@@ -222,20 +222,19 @@ class LayoutClient extends Layout
 
                 $questionlist = $cQuestionList->getQuestionList($questionlistID);
 
-                die(var_dump($questionlist));
                 $complete = $cAnswer->checkAnswers($this->userID, $measurement->MeasurementID);
                 if ($complete)
                 {
                     $output .= 
-                        '<div class="col-md-4">
-                            
+                        '<div class="col-md-4" style="background-color: #1d9ce5">
+                            complete        
                         </div>';
                 }
                 else
                 {
                     $output .= 
-                        '<div class="col-md-4">
-
+                        '<div class="col-md-4" style="background-color: #7b1115">
+                            Incompleter
                         </div>';
                 }
                 
