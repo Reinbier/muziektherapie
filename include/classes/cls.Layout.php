@@ -7,9 +7,46 @@
 
 abstract class Layout extends DAL
 {
+    
+    protected $breadcrumbs;
+    
     public function __construct()
     {
         parent::__construct();
+        $this->breadcrumbs = array();
+    }
+    
+    protected function getBreadcrumbs()
+    {
+        $breadcrumbs = '';
+        if(count($this->breadcrumbs) > 0)
+        {
+            $breadcrumbs = '
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul class="breadcrumb">
+            ';
+            $link = '/';
+            for($i = 0; $i < count($this->breadcrumbs); $i++)
+            {
+                $link .= strtolower($this->breadcrumbs[$i]) . '/';
+                if($i == (count($this->breadcrumbs) - 1))
+                {
+                    $breadcrumbs .= '<li class="active">' . $this->breadcrumbs[$i] . '</li>';
+                }
+                else
+                {
+                    $breadcrumbs .= '<li><a href="' . $link . '">' . $this->breadcrumbs[$i] . '</a></li>';
+                }
+            }
+            $breadcrumbs .= '
+                        </ul>
+                    </div>
+                </div>
+            ';
+        }
+        
+        return $breadcrumbs;
     }
     
     public function getHeader()

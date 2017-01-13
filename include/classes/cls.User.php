@@ -130,6 +130,24 @@ class User extends DAL
                 WHERE Role_name = :name";
         return $this->query($sql, array(
                     ":name" => array($roleName, PDO::PARAM_STR)
-                        ), "column");
+        ), "column");
     }
+
+    public function getAllClients()
+    {
+        $fields = $this->getDecryptedTableFields("USER");
+        $clientRoleID = $this->getRoleIDByName("Client");
+        
+        $sql = "SELECT " . $fields . "
+                FROM USER
+                WHERE UserID IN (SELECT UserID
+                                FROM USER_ROLE
+                                WHERE RoleID = :roleid)";
+        $result = $this->query($sql, array(
+            ":roleid" => array($clientRoleID, PDO::PARAM_INT)
+        ));
+        
+        return $result;
+    }
+
 }

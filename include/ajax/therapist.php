@@ -13,7 +13,7 @@ if (isset($_REQUEST["action"]))
 {
     $action = stripslashes(json_decode($_REQUEST["action"]));
     
-    if($action === "create")
+    if($action === "createTherapist")
     {
         $userParams = json_decode($_REQUEST["therapistParams"], true);
         $cUser = new User;
@@ -24,6 +24,24 @@ if (isset($_REQUEST["action"]))
                 array(
                     "title" => "Succes!", 
                     "text" => "De therapeut is aangemaakt", 
+                    "buttons" => "<button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>",
+                    "lastQuery" => $cUser->getLastQuery(),
+                    "lastResult" => $cUser->getLastQueryResult(),
+                    "lastMysqlError" => $cUser->getLastMysqlError()
+                )
+            );
+    }
+    else if($action === "createClient")
+    {
+        $userParams = json_decode($_REQUEST["clientParams"], true);
+        $cUser = new User;
+        
+        $result = $cUser->insertUser($userParams, "Client");
+        
+        echo json_encode(
+                array(
+                    "title" => "Succes!", 
+                    "text" => "De client is aangemaakt", 
                     "buttons" => "<button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>",
                     "lastQuery" => $cUser->getLastQuery(),
                     "lastResult" => $cUser->getLastQueryResult(),

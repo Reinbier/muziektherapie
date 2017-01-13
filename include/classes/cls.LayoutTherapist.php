@@ -38,22 +38,21 @@ class LayoutTherapist extends Layout
 
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-nav">
-                            <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
-                            <li class="dropdown ' . ($this->page == "client" ? 'active' : '') . '">
+                            <li' . ($this->page == "home" ? ' class="active"' : '') . '><a href="/home/">Home</a></li>
+                            <li class="dropdown' . ($this->page == "client" ? ' active' : '') . '">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Client <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/client/aanmaken/">Aanmaken</a></li>
                                     <li><a href="/client/overzicht/">Overzicht</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown ' . ($this->page == "therapeut" ? 'active' : '') . '">
+                            <li class="dropdown' . ($this->page == "therapeut" ? ' active' : '') . '">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Therapeut <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/therapeut/aanmaken/">Aanmaken</a></li>
-                                    <li><a href="/therapeut/overzicht/">Overzicht</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown ' . ($this->page == "vragenlijst" ? 'active' : '') . '">
+                            <li class="dropdown' . ($this->page == "vragenlijst" ? ' active' : '') . '">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Vragenlijst <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/vragenlijst/aanmaken/">Aanmaken</a></li>
@@ -74,6 +73,8 @@ class LayoutTherapist extends Layout
     
     private function buildPage($content = "No content found..", $sidebar = true)
     {
+        $breadcrumbs = $this->getBreadcrumbs();
+        
         if($sidebar)
         {
             // build the page with the sidebar
@@ -81,6 +82,7 @@ class LayoutTherapist extends Layout
                 <div class="row">
                     <div class="col-md-12 lead"><h2>' . $this->title . '</h2></div>
                 </div>
+                ' . $breadcrumbs . '
                 <div class="row">
 
                     <div class="col-md-3">
@@ -101,6 +103,7 @@ class LayoutTherapist extends Layout
                 <div class="row">
                     <div class="col-md-12 lead"><h2>' . $this->title . '</h2></div>
                 </div>
+                ' . $breadcrumbs . '
                 <div class="row">
 
                     <div class="col-md-12">
@@ -160,14 +163,18 @@ class LayoutTherapist extends Layout
 
     private function getTherapistCreatePage()
     {
+        // set page vars
+        $this->page = "therapeut";
         $this->title = "Therapeut aanmaken";
+        $this->breadcrumbs = array("Therapeut", "Aanmaken");
+        
         $cForm = new FormInputs();
-        $cForm->addTextInput("Naam", "Name");
-        $cForm->addTextInput("Adres", "Address");
-        $cForm->addTextInput("Woonplaats", "Place");
-        $cForm->addTextInput("Telefoon", "Phone");
-        $cForm->addTextInput("Email", "Email");
-        $cForm->addTextInput("Wachtwoord", "Password", "password");
+        $cForm->addTextInput("Naam", "Name", true);
+        $cForm->addTextInput("Adres", "Address", true);
+        $cForm->addTextInput("Woonplaats", "Place", true);
+        $cForm->addTextInput("Telefoon", "Phone", true);
+        $cForm->addTextInput("Email", "Email", true, "email");
+        $cForm->addTextInput("Wachtwoord", "Password", true, "password");
         $cForm->addRadioGroup("Geslacht", "Gender", array("Man", "Vrouw"));
         $cForm->addButton("createTherapist", "Aanmaken");
         $cForm->addResetButton();
@@ -194,35 +201,196 @@ class LayoutTherapist extends Layout
     
     public function getClientPage($subpage = null)
     {
-        switch($subpage)
+        if(is_numeric($subpage))
         {
-            case "aanmaken":
-                return $this->getClientAanmakenPage();
-            case "overzicht":
-            default:
-                return $this->getClientOverzichtPage();
+            return $this->getClientDetailsPage($subpage);
+        }
+        else
+        {
+            switch($subpage)
+            {
+                case "aanmaken":
+                    return $this->getClientCreatePage();
+                case "overzicht":
+                default:
+                    return $this->getClientOverviewPage();
+            }
         }
     }
 
     private function getClientCreatePage()
     {
+        // set page vars
+        $this->page = "client";
+        $this->title = "Client aanmaken";
+        $this->breadcrumbs = array("Client", "Aanmaken");
         
+        // create new object for the formInputs
+        $cForm = new FormInputs();
+        // set width of label and inputs
+        $cForm->setLabelWidth(3);
+        $cForm->setInputWidth(9);
+        
+        // add a new section of inputs
+        $cForm->addLegend("Algemeen");
+        $cForm->addTextInput("Naam", "Name", true);
+        $cForm->addTextInput("Adres", "Address", true);
+        $cForm->addTextInput("Woonplaats", "Place", true);
+        $cForm->addTextInput("Telefoon", "Phone", true);
+        $cForm->addTextInput("Mobiel", "Mobile");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Inloggegevens");
+        $cForm->addTextInput("Email", "Email", true, "email");
+        $cForm->addTextInput("Wachtwoord", "Password", true, "password");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Persoonlijk");
+        $cForm->addDateInput("Geboortedatum", "Date_of_birth", true);
+        $cForm->addRadioGroup("Geslacht", "Gender", array("Man", "Vrouw"));
+        $cForm->addRadioGroup("Gehuwd", "Married", array("Ja", "Nee"));
+        $cForm->addRadioGroup("Samenwonend", "Cohabiting", array("Ja", "Nee"));
+        
+        // add a new section of inputs
+        $cForm->addLegend("Opleiding");
+        $cForm->addTextInput("Hoogste niveau van opleiding", "Highest_education");
+        $cForm->addTextInput("Type opleiding", "Type_of_education");
+        $cForm->addTextArea("Werkzaamheden", "Activities");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Hulpverleners");
+        $cForm->addTextInput("Verwijzer", "Referrer");
+        $cForm->addTextInput("Huisarts", "Doctor");
+        $cForm->addTextInput("Huisartsenpraktijk", "Doctor_practise");
+        $cForm->addTextInput("Betrokken behandelaars", "Concerned_therapists");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Diagnostiek");
+        $cForm->addTextArea("Beschreven problematiek", "Issues");
+        $cForm->addRadioGroup("Officiele diagnose?", "Official_diagnosed", array("Ja", "Nee"));
+        $cForm->addTextInput("Welke professional heeft de diagnose gesteld?", "Who_diagnosed");
+        $cForm->addTextInput("Hoe is de diagnose gesteld?", "Way_of_diagnose");
+        $cForm->addHelpBlock("Way_of_diagnose", "(interview / vragenlijst/ welke/ anders)");
+        $cForm->addTextArea("Aanleiding depressieve klachten", "Occasion_of_depression");
+        $cForm->addTextInput("Duur van depressieve klachten", "Length_of_depression");
+        $cForm->addRadioGroup("Ernst van depressive klachten", "Severity_of_depression", array("Licht", "Matig", "Ernstig", "Zeer ernstig"));
+        $cForm->addTextInput("Aantal keren terugval", "Number_of_recidive");
+        $cForm->addTextInput("Lichtgevoeligheid", "Sensitivity");
+        $cForm->addHelpBlock("Sensitivity", "(winterdepressie)");
+        $cForm->addTextArea("Andere klachten", "Complaints");
+        $cForm->addHelpBlock("Complaints", "(comorbiditeit; waaronder lichamelijk)");
+        $cForm->addTextArea("Sociaal netwerk", "Social_network");
+        $cForm->addHelpBlock("Social_network", "(welke mensen staan je 'nabij')");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Behandeling");
+        $cForm->addTextInput("Doel muziektherapie", "Goal_musictherapy");
+        $cForm->addTextInput("Antidepressiva", "Antidepressiva");
+        $cForm->addHelpBlock("Antidepressiva", "(ja/nee/naam)");
+        $cForm->addTextInput("Andere behandelingen t.b.v. depressieve klachten", "Other_depression_treatment");
+        $cForm->addTextInput("Andere medicatie die invloed heeft op depressieve klachten", "Other_medication");
+        $cForm->addRadioGroup("Eerder muziektherapeutische behandelingen", "Earlier_musictherapy_treatment", array("Ja", "Nee"));
+        $cForm->addTextInput("Muziekervaring", "Music_experience");
+        $cForm->addHelpBlock("Music_experience", "(luisteren, maken, alleen, samen, instrument)");
+        $cForm->addTextInput("Muzikale voorkeuren", "Musical_preferences");
+        $cForm->addHelpBlock("Musical_preferences", "(klassiek, pop, jazz, blues, rock, rap, anders)");
+        $cForm->addTextInput("Zet je muziek in om je stemming te beïnvloeden", "Mood_music_usage");
+        $cForm->addHelpBlock("Mood_music_usage", "(nooit, soms, vaak)");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Systematische n=1 methode");
+        $cForm->addRadioGroup("Akkoord dat bekenden vragenlijst invullen?", "Allow_relatives", array("Ja", "Nee"));
+        $cForm->addTextArea("Gekozen netwerk die vragenlijst gaat invullen", "Chosen_relatives");
+        $cForm->addTextArea("Email adressen van dit netwerk", "Email_relatives");
+        
+        // add form buttons
+        $cForm->addButton("createClient", "Aanmaken");
+        $cForm->addResetButton();
+        $formBody = $cForm->createFormBody();
+        
+        $content = '
+            <div class="well">
+                <form class="form-horizontal" id="createClientForm" onsubmit="return false">
+                    <fieldset>
+                        ' . $formBody . '
+                    </fieldset>
+                </form>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
     }
     
     private function getClientOverviewPage()
     {
+        // set page vars
+        $this->page = "client";
+        $this->title = "Client overzicht";
+        $this->breadcrumbs = array("Client", "Overzicht");
         
+        $content = '
+            <div class="well">
+                <table class="table table-striped table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th>Naam</th>
+                            <th>E-mail</th>
+                            <th>Geslacht</th>
+                            <th>Plaats</th>
+                        </tr>
+                    </thead>
+        ';
+        // fetch all clients from the database
+        $cUser = new User();
+        $allClients = $cUser->getAllClients();
+        // only begin loop when result is not null
+        if(!is_null($allClients))
+        {
+            foreach($allClients as $client) // print info in table
+            {
+                $content .= "
+                        <tr>
+                            <td><a href='/client/" . $client->UserID . "/' class='btn btn-link'>" . $client->Name . "</a></td>
+                            <td>" . $client->Email . "</td>
+                            <td>" . $client->Gender . "</td>
+                            <td>" . $client->Place . "</td>
+                        </tr>
+                ";
+            }
+        }
+        
+        $content .= '
+                </table>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
     }
     
+    private function getClientDetailsPage($userID)
+    {
+        $cUser = new User();
+        $userDetails = $cUser->getUserById($userID);
+        
+        // set page vars
+        $this->page = "client";
+        $this->title = $userDetails->Name;
+        $this->breadcrumbs = array("Client", "Overzicht", $userDetails->Name);
+        
+        
+        return $this->buildPage($userDetails->Place, false);
+    }
+
+
     public function getQuestionListPage($subpage = null)
     {
         switch($subpage)
         {
             case "aanmaken":
-                return $this->getQuestionListAanmakenPage();
+                return $this->getQuestionListCreatePage();
             case "overzicht":
             default:
-                return $this->getQuestionListOverzichtPage();
+                return $this->getQuestionListOverviewPage();
         }
     }
 

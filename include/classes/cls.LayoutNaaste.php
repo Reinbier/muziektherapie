@@ -1,128 +1,140 @@
 <?php
 
 /**
- * @author: Reinier Gombert
+ * @author: Reinier Gombert, Ronald van der Weide
  * @date: 5-dec-2016
  */
 class LayoutNaaste extends Layout
 {
 
-    public function __construct()
+    private $page;
+    private $title;
+    private $userID;
+
+    public function __construct($userID)
     {
         parent::__construct();
+        $this->userID = $userID;
     }
 
     public function getHeader()
     {
         $return = parent::getHeader();
+        
+        $cUser = new User();
+        $userData = $cUser->getUserById($this->userID);
 
         $return .= '
-                    <nav class="navbar navbar-default">
-                        <div class="container-fluid">
-                            <div class="navbar-header">
-                                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                                    <span class="sr-only">Toggle navigation</span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </button>
-                                <a class="navbar-brand" href="#"></a>
-                            </div>
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                    </div>
 
-                            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                                <ul class="nav navbar-nav">
-                                    <li><a href="/home/">Home <span class="sr-only">(current)</span></a></li>
-                                </ul>
-                                <ul class="nav navbar-nav navbar-right">
-                                    <li class="active"><a href="/?logout">Uitloggen <span class="sr-only">(current)</span></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </nav>
-                ';
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="nav navbar-nav">
+                            <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
+                            <li ' . ($this->page == "vragenlijst" ? 'class="active"' : '') . '"><a href="/vragenlijst/">Vragenlijst</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="navbar-text">Ingelogd als ' . $userData->Name . '</li>
+                            <li><a href="/?logout">Uitloggen</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        ';
+        return $return;
     }
-<<<<<<< HEAD
-    /** Displays the homepage of the specific user
-     * 
-     * @return type
-     */
-=======
+    
+    private function buildPage($content = "No content found..", $sidebar = true)
+    {
+        if($sidebar)
+        {
+            // build the page with the sidebar
+            $return = ' 
+                <div class="row">
+                    <div class="col-md-12 lead"><h2>' . $this->title . '</h2></div>
+                </div>
+                <div class="row">
 
->>>>>>> master
+                    <div class="col-md-3">
+                        ' . $this->getLeftSideBar() . '
+                    </div>
+
+                    <div class="col-md-9">
+                        ' . $content . '
+                    </div>
+
+                </div>
+            ';
+        }
+        else
+        {
+            // build the page without the sidebar
+            $return = ' 
+                <div class="row">
+                    <div class="col-md-12 lead"><h2>' . $this->title . '</h2></div>
+                </div>
+                <div class="row">
+
+                    <div class="col-md-12">
+                        ' . $content . '
+                    </div>
+
+                </div>
+            ';
+        }
+        
+        // wrap header, content divs and footer around the content and return it
+        return $this->getHeader() . parent::getContent($return) . $this->getFooter();
+    }
+    
+    private function getLeftSideBar()
+    {
+        return '
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Meteen naar:</h3>
+                </div>
+                <div class="panel-body">
+                    <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
+                </div>
+            </div>
+        ';
+    }
+
     public function getHomePage()
     {
-        $return = '
-                <div class="container-fluid">
-                
-                    <div class="row">
-
-                        <div class="col-md-3">
-                            <div class="panel panel-default">
-                                <div class="panel-heading">
-                                  <h3 class="panel-title">Meteen naar:</h3>
-                                </div>
-                                <div class="panel-body">
-<<<<<<< HEAD
-                                  <a href="metingstarten.html" class="btn btn-success">Vragenlijst invullen</a>
-=======
-                                  <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
->>>>>>> master
-                                </div>
-                              </div>
-                        </div>
-
-                        <div class="col-md-6 col-md-offset-1 well">
-                            <h3>Meldingen</h3>
-                            <p>Op dit moment geen meldingen om weer te geven</p>
-                        </div>
-
-                    </div>
-                        
-                </div>
-            ';
+        $this->page = "home";
+        $this->title = "Home";
         
-        return $this->getHeader() . parent::getContent($return) . $this->getFooter();
-    }
-<<<<<<< HEAD
-    /** returns a page with a guestionlist the user can interact with.
-     * @return the webpage 
-     */
-     public function getInsertQuestionlist()
-    {
-         $cquestionlist = new QuestionList();
-        $return = '
-                <div class="col-md-10 col-md-offset-1 well">
-                        <form class="form-horizontal">
-                            <fieldset>
-                                <legend>Vul de vragenlijst in</legend>
-                                <div class="form-group">';
-                                   $cquestionlist->getQuestions($questionListID);
-        '</div>
-                            </fieldset>    
-                        </form>
-                </div>
-            ';
-        
-        return $this->getHeader() . parent::getContent($return) . $this->getFooter();
-=======
-    
-    public function insertQuestionList($questionlistID)
-    {
-        
-        $return ='
-            <div class="container-fluid">
-                
-                    <div class="row">
-                        <div class="col-md-10 col-md-offset-1 well">
-                            <h3>Vragenlijst: </h3>
-                            
-                        </div>
-
-                    </div>
-                        
-                </div>
-
+        $content = '
+            <div class="well">
+            
+                <h3>Welkom</h3>
+                <p></p>
+            
+            </div>
         ';
->>>>>>> master
+
+        return $this->buildPage($content);
+    }
+    
+    public function getQuestionListPage($subpage = null)
+    {
+        $this->page = "vragenlijst";
+        $this->title = "Vragenlijst";
+        
+        $content = '
+            
+        ';
+        
+        return $this->buildPage($content);
     }
 }

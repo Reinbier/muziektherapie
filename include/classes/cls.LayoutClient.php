@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author: Reinier Gombert
+ * @author: Reinier Gombert, Patrick Pieper
  * @date: 5-dec-2016
  */
 class LayoutClient extends Layout
@@ -13,6 +13,8 @@ class LayoutClient extends Layout
     private $cUser;
     private $cTreatment;
     private $cMeasurement;
+    private $cAnswer;
+    private $cQuestionList;
 
     public function __construct($userID)
     {
@@ -24,7 +26,8 @@ class LayoutClient extends Layout
     }
 
     private function buildPage($content = "No content found..", $sidebar = true)
-    {
+    {   
+        $breadcrumbs = $this->getBreadcrumbs();
         if($sidebar)
         {
             // build the page with the sidebar
@@ -33,7 +36,8 @@ class LayoutClient extends Layout
                 <div class="col-md-12 lead">
                     <h2>' . $this->title . '</h2>
                 </div>
-            </div> 
+            </div>
+            '. $breadcrumbs .' 
             <div class="row">
 
                 <div class="col-md-3">
@@ -55,7 +59,8 @@ class LayoutClient extends Layout
                 <div class="col-md-12 lead">
                     <h2>' . $this->title . '</h2>
                 </div>
-            </div>  
+            </div> 
+            '. $breadcrumbs .'  
             <div class="row">
 
                 <div class="col-md-12">
@@ -86,9 +91,9 @@ class LayoutClient extends Layout
 
     public function getHeader()
     {
-        $return = parent::getHeader();
+        $header = parent::getHeader();
 
-        $return .= '
+        $header .= '
         <nav class="navbar navbar-default">
             <div class="container-fluid">
                 <div class="navbar-header">
@@ -105,7 +110,7 @@ class LayoutClient extends Layout
                     <ul class="nav navbar-nav">
                         <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
                         <li ' . ($this->page == "voortgang" ? 'class="active"' : '') . '><a href="/voortgang/">Voortgang</a></li>
-                        <li ' . ($this->page == "vragenlijst" ? 'class="active"' : '') . '><a href="/vragenlijst/">Vragenlijst</a></li>
+                        <li ' . ($this->page == "vragenlijst" ? 'class="active"' : '') . '><a href="/vragenlijst/">Vragenlijsten</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
                         <li class="navbar-text">Ingelogd als '. $this->cUser->getUserById($this->userID)->Name .'</li>
@@ -115,7 +120,7 @@ class LayoutClient extends Layout
             </div>
         </nav>
         ';
-        return $return;
+        return $header;
     }
 
     public function getHomePage()
@@ -140,24 +145,31 @@ class LayoutClient extends Layout
     public function getProgressPage()
     {
         $output = "";
+        
         $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
-        $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
+        
+        //$NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
+        // TODO: patrick checken, Trying to get property of non-object on line 153
         $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-        foreach ($measurements as $measurement)
+        
+        if ($measurements) 
         {
-            $points = $this->cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
-            $output .= "
-            <div class='col-md-6'>
-                <div class='well text-center'>
-                    <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
-                    " . $measurement->Name . "
-                </div>
-            </div> ";
+            foreach ($measurements as $measurement)
+            {
+                $points = $this->cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
+                $output .= "
+                <div class='col-md-6'>
+                    <div class='well text-center'>
+                        <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
+                        " . $measurement->Name . "
+                    </div>
+                </div> ";
+            }
         }
 
         if($output == "")
         {
-            $output = "Geen metingen gevonden voor deze behandeling";
+            $output = "<div class='col-md-12'>Geen metingen gevonden voor deze behandeling</div>";
         }
 
         $this->page = "voortgang";
@@ -184,7 +196,65 @@ class LayoutClient extends Layout
             </div>
         </div>';
 
-return $this->buildPage($content, false);
-}
+        return $this->buildPage($content, false);
+    }
+
+    public function getQuestionListPage()
+    {
+
+        $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
+
+        $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+        $cQuestionList = new QuestionList();
+
+        $cAnswer = new Answer();
+
+        if (!$measurements)
+        {
+            $output = "Geen vragenlijsten die nog open staan";
+        }
+        else
+        {
+            $output = '';
+            foreach ($measurements as $measurement)
+            {   
+                $questionlistID = $measurement->QuestionlistID;
+
+                $questionlistName = $cQuestionList->getQuestionListNameByID($questionlistID);
+
+                $complete = $cAnswer->checkAnswers($this->userID, $measurement->MeasurementID);
+                if ($complete)
+                {
+                    $output .= 
+                        '<div class="col-md-4 well">
+                            complete        
+                        </div>';
+                }
+                else
+                {
+                    $output .= 
+                        '<div class="col-md-4 well">
+                            <h1> '. $questionlistName .'</h1>
+                        </div>';
+                }
+                
+                $output .= "</div>";   
+            }
+
+            
+        }
+
+        $this->page = "vragenlijst";
+        $this->title = "Vragenlijsten";
+
+        $content = '
+        <div class="row">
+            <div class="col-md-4">
+                '. $output .' 
+            </div>
+        </div>';
+
+        return $this->buildPage($content, false);
+    }
 
 }
