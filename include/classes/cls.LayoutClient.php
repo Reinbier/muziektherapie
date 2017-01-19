@@ -93,7 +93,7 @@ class LayoutClient extends Layout
         <nav class="navbar navbar-default">
             <div class="container-fluid">
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
                         <span class="sr-only">Toggle navigation</span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -102,7 +102,7 @@ class LayoutClient extends Layout
                     <a class="navbar-brand" href="#"></a>
                 </div>
 
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <div class="collapse navbar-collapse">
                     <ul class="nav navbar-nav">
                         <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
                         <li ' . ($this->page == "voortgang" ? 'class="active"' : '') . '><a href="/voortgang/">Voortgang</a></li>
@@ -129,8 +129,6 @@ class LayoutClient extends Layout
         {
             switch($subpage)
             {
-                case "aanmaken":
-                    return $this->getQuestionListCreatePage();
                 case "overzicht":
                 default:
                     return $this->getQuestionListOverviewPage();
@@ -142,7 +140,6 @@ class LayoutClient extends Layout
     {
         $this->page = "home";
         $this->title = "Startpagina";
-        $announcement ="";
 
         $cUser = new User();
         $userData = $cUser->getUserById($this->userID);
@@ -221,9 +218,9 @@ class LayoutClient extends Layout
         return $this->buildPage($content, false);
     }
 
-    public function getQuestionListOverviewPage()
+    private function getQuestionListOverviewPage()
     {
-        $this->page = "overzicht";
+        $this->page = "vragenlijst";
         $this->title = "Vragenlijsten";
         $cTreatment = new Treatment();
         $treatment = $cTreatment->getTreatmentByUserID($this->userID);
@@ -288,7 +285,7 @@ class LayoutClient extends Layout
         return $this->buildPage($content, false);
     }
 
-    public function getQuestionListDetailsPage($questionListID)
+    private function getQuestionListDetailsPage($questionListID)
     {
         $cQuestionlist = new QuestionList();
         $questionListName = $cQuestionlist->getQuestionListNameByID($questionListID);
@@ -297,7 +294,6 @@ class LayoutClient extends Layout
         $this->breadcrumbs = array("vragenlijst", $questionListName);
 
         $formbody = "Geen vragen gevonden";
-        $cQuestionlist = new QuestionList();
         $cQuestion = new Question();
         $cForminputs = new FormInputs();
         $cForminputs->setLabelWidth(1);
@@ -307,6 +303,11 @@ class LayoutClient extends Layout
         $questions = $cQuestionlist->getQuestions($questionListID);
         if($questions)
         {
+            $disabled = "";
+            if($cQuestionlist->isComplete($questionListID))
+            {
+                $disabled = "disabled";
+            }
             foreach ($questions as $question)
             {
                 if($cQuestion->isMultipleChoice($question->QuestionID))
@@ -320,17 +321,20 @@ class LayoutClient extends Layout
                         {
                             $aAnswers[$pos_answer->PossibleID] = $pos_answer->Answer;
                         }
-                        $cForminputs->addMultipleChoiceQuestion($question->Question ,$aAnswers, $selectedAnswer);
+                        $cForminputs->addMultipleChoiceQuestion($question->QuestionID,$question->Question ,$aAnswers, $selectedAnswer,$disabled);
                     }
 
                 }
                 else
                 {
                     $answer = $cQuestion->getAnswer($question->QuestionID);
-                    $cForminputs->addOpenQuestion($question->Question, $answer);
+                    $cForminputs->addOpenQuestion($question->Question, $answer, $disabled);
                 }
             }
-            $cForminputs->addButton("fillInQuestionList", "Verzenden");
+            if(!($cQuestionlist->isComplete($questionListID)))
+            {
+                $cForminputs->addButton("fillInQuestionList", "Verzenden");
+            }
 
             $formbody = $cForminputs->createFormBody();
         }
