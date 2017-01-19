@@ -27,14 +27,15 @@ $cPage = new Page($page, $subpage);
         <link rel="stylesheet" type="text/css" href="/css/morris.css">
         <link rel="stylesheet" type="text/css" href="/js/datatables/css/dataTables.bootstrap.min.css">
         <script src="/js/jquery.js"></script>
-        <script src="/js/main.js"></script>
         <script src="/js/raphael.min.js"></script>
         <script src="/js/morris.min.js"></script>
         <script src="/js/moment.js"></script>
-        <script src="/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/js/main.js"></script>
+        <script src="/js/questionlist.js"></script>
         <script src="/bootstrap/js/datetimepicker.min.js"></script>
         <script src="/js/datatables/js/jquery.dataTables.min.js"></script>
         <script src="/js/datatables/js/dataTables.bootstrap.min.js"></script>
+        <script src="/bootstrap/js/bootstrap.min.js"></script>
         <title>Muziektheraphie</title>
     </head>
     <body>

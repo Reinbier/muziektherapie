@@ -21,7 +21,11 @@ $(document).ready(function () {
 
     if ($('#progressChart').length)
     {
-        drawGraph();
+        drawGraph(0);
+    }
+    else if ($('#progressChartOverview').length)
+    {
+        drawGraph($("#progressChartOverview").data("userid"));
     }
     
     if ($(".dataTable").length)
@@ -64,7 +68,8 @@ $(document).ready(function () {
                 case 'button-createClient':
                     parameters = createClient();
                     break;
-                case '':
+                case 'button-createQuestionlist':
+                    parameters = createQuestionList();
                     break;
             }
 
@@ -125,6 +130,23 @@ function createClient()
     return null;
 }
 
+function createQuestionList()
+{
+    if ($("#createQuestionListForm")[0].checkValidity())
+    {
+        var questionListData = getQuestionListCreateData();
+
+        return {
+            url: '/include/ajax/questionlist.php',
+            data: {
+                action: JSON.stringify('createQuestionList'),
+                questionListParams: JSON.stringify(questionListData)
+            }
+        };
+    }
+    return null;
+}
+
 function displayPopup(title, body, footer)
 {
     // change the values of the title, body and footer
@@ -164,25 +186,45 @@ function getAllInputData(formID)
     return inputParams;
 }
 
-function drawGraph()
+function drawGraph(userid)
 {
+    var chart = "progressChart";
+    var script = "client";
+    if(userid > 0)
+    {
+        chart += "Overview";
+        script = "therapist";
+    }
+    
     var request = $.ajax({
-        url: "/include/ajax/client.php",
+        url: "/include/ajax/" + script + ".php",
         type: "POST",
-        data: {action: JSON.stringify("drawGraph")},
+        data: {action: JSON.stringify("drawGraph"),
+                userid: JSON.stringify(userid)},
         dataType: "json"
     });
     request.done(function (msg) {
         if(msg.status == "ok")
         {
+            // first determine the set of keys
+            var params = msg.result[0];
+            
+            var $yKeys = [];
+            $.each(params, function(i, v){
+                if(i != "measurement")
+                {
+                    $yKeys.push(i);
+                }
+            });
+            
             new Morris.Line({
-                element: 'progressChart',
-                data: msg,
+                element: chart,
+                data: msg.result,
                 xkey: 'measurement',
                 parseTime: false,
-                ykeys: ['points'],
-                labels: ['score'],
-                padding: 50,
+                ykeys: $yKeys,
+                labels: $yKeys,
+                padding: 50
             });
         }
         else

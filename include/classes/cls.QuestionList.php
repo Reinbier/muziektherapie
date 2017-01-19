@@ -1,84 +1,110 @@
 <?php
+
 /**
-* 
-*/
+ * 
+ */
 class QuestionList extends DAL
 {
-	
-	function __construct()
-	{
-		parent::__construct();
-	}
-        
-        
-        /**
-         * Creats a questionlist based on a form, and inserts thes values 
-         * into the database
-         * @param type $Name
-         * 
-         */
-	public function createQuestionList($Name)
-	{
-		$sql = "INSERT INTO QuestionList (Name)
-				VALUES (:name)";
 
-		$result = $this->query($sql, array(
-			":name" => array($Name, PDO::PARAM_STR),
-			)
-		);
-                
-                if(!is_null($result))
-                {
-                    $vragen = array($_POST['vraag'] => array($_POST['points'] => $_POST['answer']));
-                    
-                    $sqlvraag = "INSERT INTO QUESTION (Question, QuestionlistID)
-                                VALUES (:question, :questionlistid)";
-                                
-                                
-                    $sqlanswers = "INSERT INTO POSSIBLE_ANSWER (Points, Answer, QuestionID)
-                                VALUES (:points, :answer, :questionid)";
-                                  
-                        foreach($vragen as $vraag => $answers)
-                        {
-                           $vraagid = $this->query($sqlvraag, array(
-                                    ":question" => array($vraag, PDO::PARAM_STR),
-                                    ":questionlistid" => array($result, PDO::PARAM_INT)
-                                    ));
-                            
-                            foreach ($answers as $points => $answer)
-                            {
-                               $answerid = $this->query($sqlanswers, array(
-                                    ":points" => array($points, PDO::PARAM_INT),
-                                    ":answer" => array($answer, PDO::PARAM_STR),
-                                    ":questionid" => array($vraagid, PDO::PARAM_INT)
-                                    ));         
-                            }
-                        }
+    function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Creates a questionlist and returns its inserted ID.
+     * 
+     * @param String $Name  Name of the question list
+     * @return int          QuestionListID
+     * 
+     */
+    public function createQuestionList($Name)
+    {
+        $sql = "INSERT INTO QUESTIONLIST (Name)
+                VALUES (:name)";
+
+        return $this->query($sql, array(
+            ":name" => array($Name, PDO::PARAM_STR),
+                )
+        );
+    }
+
+    public function ísComplete($questionlistID)
+    {
+        $complete = true;
+        $questions = $this->getQuestions($questionlistID);
+        if ($questions) {
+            $cQuestion = new Question();
+            foreach ($questions as $question) {
+                if ($cQuestion->isMultipleChoice($question->QuestionID)) {
+                    if (is_null($cQuestion->getSelectedAnswer($question->QuestionID))) {
+                        $complete = false;
+                    }
+                } else {
+                    if (is_null($cQuestion->getAnswer($question->QuestionID))) {
+                        $complete = false;
+                    }
                 }
-                echo "succes";
-	}
-        
-        /**
-         * returns a lsit of question from the slected questionlist
-         * @param type $questionListID
-         * @return type
-         */
-	public function getQuestions($questionListID)
-	{
-		$sql = "SELECT *
-				FROM Question
-				WHERE QuestionlistID = :questionlistID";
+            }
+        } else {
+            $complete = false;
+        }
 
-		$result = $this->query($sql, array(
-			":questionlistID" => array($questionlistID, PDO::PARAM_INT),
-			)
-		);
+        return $complete;
+    }
 
-		return $result;
-	}
-        
-        
-}	
+    /**
+     * returns a list of questions from the selected questionlist
+     * @param type $questionListID
+     * @return type
+     */
+    public function getQuestions($questionListID)
+    {
+        $sql = "SELECT *
+                FROM QUESTION
+                WHERE QuestionlistID = :questionlistID";
+
+        $result = $this->query($sql, array(
+                ":questionlistID" => array($questionListID, PDO::PARAM_INT)
+            )
+        );
+
+        return $result;
+    }
+
+    public function getQuestionListNameByID($questionlistID)
+    {
+        $sql = "SELECT Name
+                FROM QUESTIONLIST
+                WHERE QuestionlistID = :questionListID";
+
+        $list = $this->query($sql, array(
+                ":questionListID" => array($questionlistID, PDO::PARAM_INT)
+            ), "column");
+
+        return $list;
+    }
+    
+    public function getAllQuestionLists()
+    {
+        $sql = "SELECT *
+                FROM QUESTIONLIST";
+        return $this->query($sql);
+    }
+
+    public function getQuestionListIDByMeasurementID($measurementID)
+    {
+        $query ="SELECT QuestionlistID
+                FROM MEASUREMENT
+                WHERE MeasurementID = :measurementID";
+
+        $result = $this->query($query, array(
+            "measurementID" => array($measurementID, PDO::PARAM_INT),
+        ), "column");
+
+        return $result;
+    }
 
 
-?>
+
+}

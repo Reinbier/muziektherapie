@@ -9,15 +9,19 @@ class FormInputs
 
     private $wLabel = 2;
     private $wInput = 10;
+    private $questionNumber;
     private $aInputs;
     private $aHelpBlocks;
     private $btnReset;
+    private $mandatoryNotification;
 
     public function __construct()
     {
         $this->aInputs = array();
         $this->aHelpBlocks = array();
         $this->btnReset = false;
+        $this->questionNumber = 1;
+        $this->mandatoryNotification = true;
     }
 
     /**
@@ -40,6 +44,11 @@ class FormInputs
     public function setInputWidth($val)
     {
         $this->wInput = $val;
+    }
+
+    public function disableMandatoryNotification()
+    {
+        $this->mandatoryNotification = false;
     }
 
     /**
@@ -134,6 +143,46 @@ class FormInputs
         );
     }
 
+    /**
+     * Add a Question with multiple choice answers to the form.
+     * 
+     * @param string $question  The question for the user. (will be auto-numbered)
+     * @param array $aAnswers   Associative array in the format: AnswerID => Answer
+     * @param int $optionSelected   The value of the answerID of the option to be pre-selected.
+     */
+    public function addMultipleChoiceQuestion($name, $question, $aAnswers, $optionSelected = null, $disabled = "")
+    {
+        $radios = '';
+        $i = 1;
+        foreach ($aAnswers as $answerID => $val)
+        {
+            $radios .= '
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="' . $name . '" id="radio-' . $name . '-' . $i++ . '" data-column="PossibleAnswerID" value="' . $answerID . '" ' . ($optionSelected == $answerID ? 'checked' : '') . ' ' . $disabled . '> ' . $val . '
+                    </label>
+                </div>
+            ';
+        }
+
+        $this->aInputs[] = array(
+            'name' => $question,
+            'tag' => $name,
+            'type' => 'multiple-choice',
+            'text' => $radios
+        );
+    }
+
+    public function addOpenQuestion($question, $answer = "", $disabled = "")
+    {
+        $this->aInputs[] = array(
+            'name' => $question,
+            'tag' => "Answer",
+            'type' => 'open-question',
+            'text' => '<input type="text" class="form-control" id="input-Answer" name="input-Answer" data-column="Answer" value="' . $answer . '" ' . $disabled . '>'
+        );
+    }
+
     public function addButton($name, $text = "Verzenden", $class = "primary")
     {
         $this->aInputs[] = array(
@@ -185,7 +234,7 @@ class FormInputs
             {
                 $return .= '<span class="help-block">' . $this->aHelpBlocks[$tag] . '</span> ';
             }
-             // add missing </div>, in case there is a help-block
+            // add missing </div>, in case there is a help-block
             $return .= '
                     </div>
                 </div>
@@ -208,11 +257,28 @@ class FormInputs
                 </div>
             ';
         }
+        else if ($type === "multiple-choice" || $type === "open-question")
+        {
+            $return = '
+                <div class="form-group">
+                    <label class="col-lg-' . $this->wLabel . ' control-label">' . $this->questionNumber++ . '.</label>
+                    <div class="col-lg-' . $this->wInput . '"><label class="control-label">' . $name . '</label>
+                        ' . $text;
+            // check for help-block for this input
+            if (array_key_exists($tag, $this->aHelpBlocks))
+            {
+                $return .= '<span class="help-block">' . $this->aHelpBlocks[$tag] . '</span> ';
+            }
+            $return .= '
+                    </div>
+                </div>
+            ';
+        }
         else if ($type === "button")
         {
             $return = '
                 <div class="form-group">
-                    <span class="col-lg-' . $this->wLabel . ' help-block text-right">* = verplichte velden</span>
+                    <span class="col-lg-' . $this->wLabel . ' help-block text-right">' . ($this->mandatoryNotification ? '* = verplichte velden' : '') . '</span>
                     <div class="col-lg-' . $this->wInput . ' text-right">
                         ';
             if ($this->btnReset)
