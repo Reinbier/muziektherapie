@@ -38,22 +38,22 @@ class LayoutTherapist extends Layout
 
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-nav">
-                            <li ' . ($this->page == "home" ? 'class="active"' : '') . '><a href="/home/">Home</a></li>
-                            <li class="dropdown ' . ($this->page == "client" ? 'active' : '') . '">
+                            <li' . ($this->page == "home" ? ' class="active"' : '') . '><a href="/home/">Home</a></li>
+                            <li class="dropdown' . ($this->page == "client" ? ' active' : '') . '">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Client <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/client/aanmaken/">Aanmaken</a></li>
                                     <li><a href="/client/overzicht/">Overzicht</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown ' . ($this->page == "therapeut" ? 'active' : '') . '">
+                            <li class="dropdown' . ($this->page == "therapeut" ? ' active' : '') . '">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Therapeut <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/therapeut/aanmaken/">Aanmaken</a></li>
                                     <li><a href="/therapeut/overzicht/">Overzicht</a></li>
                                 </ul>
                             </li>
-                            <li class="dropdown ' . ($this->page == "vragenlijst" ? 'active' : '') . '">
+                            <li class="dropdown' . ($this->page == "vragenlijst" ? ' active' : '') . '">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Vragenlijst <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/vragenlijst/aanmaken/">Aanmaken</a></li>
@@ -74,6 +74,8 @@ class LayoutTherapist extends Layout
     
     private function buildPage($content = "No content found..", $sidebar = true)
     {
+        $breadcrumbs = $this->getBreadcrumbs();
+        
         if($sidebar)
         {
             // build the page with the sidebar
@@ -81,6 +83,7 @@ class LayoutTherapist extends Layout
                 <div class="row">
                     <div class="col-md-12 lead"><h2>' . $this->title . '</h2></div>
                 </div>
+                ' . $breadcrumbs . '
                 <div class="row">
 
                     <div class="col-md-3">
@@ -101,6 +104,7 @@ class LayoutTherapist extends Layout
                 <div class="row">
                     <div class="col-md-12 lead"><h2>' . $this->title . '</h2></div>
                 </div>
+                ' . $breadcrumbs . '
                 <div class="row">
 
                     <div class="col-md-12">
@@ -118,7 +122,7 @@ class LayoutTherapist extends Layout
     private function getLeftSideBar()
     {
         return '
-            <div class="panel panel-default">
+            <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title">Meteen naar:</h3>
                 </div>
@@ -148,26 +152,37 @@ class LayoutTherapist extends Layout
     
     public function getTherapistPage($subpage = null)
     {
-        switch($subpage)
+        if(is_numeric($subpage))
         {
-            case "aanmaken":
-                return $this->getTherapistCreatePage();
-            case "overzicht":
-            default:
-                return $this->getTherapistOverviewPage();
+            return $this->getTherapistDetailsPage($subpage);
+        }
+        else
+        {
+            switch($subpage)
+            {
+                case "aanmaken":
+                    return $this->getTherapistCreatePage();
+                case "overzicht":
+                default:
+                    return $this->getTherapistOverviewPage();
+            }
         }
     }
 
     private function getTherapistCreatePage()
     {
+        // set page vars
+        $this->page = "therapeut";
         $this->title = "Therapeut aanmaken";
+        $this->breadcrumbs = array("Therapeut", "Aanmaken");
+        
         $cForm = new FormInputs();
-        $cForm->addTextInput("Naam", "Name");
-        $cForm->addTextInput("Adres", "Address");
-        $cForm->addTextInput("Woonplaats", "Place");
-        $cForm->addTextInput("Telefoon", "Phone");
-        $cForm->addTextInput("Email", "Email");
-        $cForm->addTextInput("Wachtwoord", "Password", "password");
+        $cForm->addTextInput("Naam", "Name", true);
+        $cForm->addTextInput("Adres", "Address", true);
+        $cForm->addTextInput("Woonplaats", "Place", true);
+        $cForm->addTextInput("Telefoon", "Phone", true);
+        $cForm->addTextInput("Email", "Email", true, "email");
+        $cForm->addTextInput("Wachtwoord", "Password", true, "password");
         $cForm->addRadioGroup("Geslacht", "Gender", array("Man", "Vrouw"));
         $cForm->addButton("createTherapist", "Aanmaken");
         $cForm->addResetButton();
@@ -189,51 +204,380 @@ class LayoutTherapist extends Layout
     
     private function getTherapistOverviewPage()
     {
+        // set page vars
+        $this->page = "therapist";
+        $this->title = "Therapeut overzicht";
+        $this->breadcrumbs = array("Therapeut", "Overzicht");
         
+        $content = '
+            <div class="well">
+                <table class="table table-striped table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th>Naam</th>
+                            <th>E-mail</th>
+                            <th>Geslacht</th>
+                            <th>Plaats</th>
+                        </tr>
+                    </thead>
+        ';
+        // fetch all clients from the database
+        $cUser = new User();
+        $allTherapists = $cUser->getAllTherapists();
+        // only begin loop when result is not null
+        if(!is_null($allTherapists))
+        {
+            foreach($allTherapists as $user) // print info in table
+            {
+                $content .= "
+                        <tr>
+                            <td><a href='/therapeut/" . $user->UserID . "/' class='btn btn-link'>" . $user->Name . "</a></td>
+                            <td>" . $user->Email . "</td>
+                            <td>" . $user->Gender . "</td>
+                            <td>" . $user->Place . "</td>
+                        </tr>
+                ";
+            }
+        }
+        
+        $content .= '
+                </table>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
+    }
+    
+    private function getTherapistDetailsPage($userID)
+    {
+        $cUser = new User();
+        $userDetails = $cUser->getUserById($userID);
+        
+        // set page vars
+        $this->page = "therapeut";
+        $this->title = $userDetails->Name;
+        $this->breadcrumbs = array("Therapeut", "Overzicht", $userDetails->Name);
+        
+        
+        return $this->buildPage($userDetails->Place, false);
     }
     
     public function getClientPage($subpage = null)
     {
-        switch($subpage)
+        if(is_numeric($subpage))
         {
-            case "aanmaken":
-                return $this->getClientAanmakenPage();
-            case "overzicht":
-            default:
-                return $this->getClientOverzichtPage();
+            return $this->getClientDetailsPage($subpage);
+        }
+        else
+        {
+            switch($subpage)
+            {
+                case "aanmaken":
+                    return $this->getClientCreatePage();
+                case "overzicht":
+                default:
+                    return $this->getClientOverviewPage();
+            }
         }
     }
 
     private function getClientCreatePage()
     {
+        // set page vars
+        $this->page = "client";
+        $this->title = "Client aanmaken";
+        $this->breadcrumbs = array("Client", "Aanmaken");
         
+        // create new object for the formInputs
+        $cForm = new FormInputs();
+        // set width of label and inputs
+        $cForm->setLabelWidth(3);
+        $cForm->setInputWidth(9);
+        
+        // add a new section of inputs
+        $cForm->addLegend("Algemeen");
+        $cForm->addTextInput("Naam", "Name", true);
+        $cForm->addTextInput("Adres", "Address", true);
+        $cForm->addTextInput("Woonplaats", "Place", true);
+        $cForm->addTextInput("Telefoon", "Phone", true);
+        $cForm->addTextInput("Mobiel", "Mobile");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Inloggegevens");
+        $cForm->addTextInput("Email", "Email", true, "email");
+        $cForm->addTextInput("Wachtwoord", "Password", true, "password");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Persoonlijk");
+        $cForm->addDateInput("Geboortedatum", "Date_of_birth", true);
+        $cForm->addRadioGroup("Geslacht", "Gender", array("Man", "Vrouw"));
+        $cForm->addRadioGroup("Gehuwd", "Married", array("Ja", "Nee"));
+        $cForm->addRadioGroup("Samenwonend", "Cohabiting", array("Ja", "Nee"));
+        
+        // add a new section of inputs
+        $cForm->addLegend("Opleiding");
+        $cForm->addTextInput("Hoogste niveau van opleiding", "Highest_education");
+        $cForm->addTextInput("Type opleiding", "Type_of_education");
+        $cForm->addTextArea("Werkzaamheden", "Activities");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Hulpverleners");
+        $cForm->addTextInput("Verwijzer", "Referrer");
+        $cForm->addTextInput("Huisarts", "Doctor");
+        $cForm->addTextInput("Huisartsenpraktijk", "Doctor_practise");
+        $cForm->addTextInput("Betrokken behandelaars", "Concerned_therapists");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Diagnostiek");
+        $cForm->addTextArea("Beschreven problematiek", "Issues");
+        $cForm->addRadioGroup("Officiele diagnose?", "Official_diagnosed", array("Ja", "Nee"));
+        $cForm->addTextInput("Welke professional heeft de diagnose gesteld?", "Who_diagnosed");
+        $cForm->addTextInput("Hoe is de diagnose gesteld?", "Way_of_diagnose");
+        $cForm->addHelpBlock("Way_of_diagnose", "(interview / vragenlijst/ welke/ anders)");
+        $cForm->addTextArea("Aanleiding depressieve klachten", "Occasion_of_depression");
+        $cForm->addTextInput("Duur van depressieve klachten", "Length_of_depression");
+        $cForm->addRadioGroup("Ernst van depressive klachten", "Severity_of_depression", array("Licht", "Matig", "Ernstig", "Zeer ernstig"));
+        $cForm->addTextInput("Aantal keren terugval", "Number_of_recidive");
+        $cForm->addTextInput("Lichtgevoeligheid", "Sensitivity");
+        $cForm->addHelpBlock("Sensitivity", "(winterdepressie)");
+        $cForm->addTextArea("Andere klachten", "Complaints");
+        $cForm->addHelpBlock("Complaints", "(comorbiditeit; waaronder lichamelijk)");
+        $cForm->addTextArea("Sociaal netwerk", "Social_network");
+        $cForm->addHelpBlock("Social_network", "(welke mensen staan je 'nabij')");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Behandeling");
+        $cForm->addTextInput("Doel muziektherapie", "Goal_musictherapy");
+        $cForm->addTextInput("Antidepressiva", "Antidepressiva");
+        $cForm->addHelpBlock("Antidepressiva", "(ja/nee/naam)");
+        $cForm->addTextInput("Andere behandelingen t.b.v. depressieve klachten", "Other_depression_treatment");
+        $cForm->addTextInput("Andere medicatie die invloed heeft op depressieve klachten", "Other_medication");
+        $cForm->addRadioGroup("Eerder muziektherapeutische behandelingen", "Earlier_musictherapy_treatment", array("Ja", "Nee"));
+        $cForm->addTextInput("Muziekervaring", "Music_experience");
+        $cForm->addHelpBlock("Music_experience", "(luisteren, maken, alleen, samen, instrument)");
+        $cForm->addTextInput("Muzikale voorkeuren", "Musical_preferences");
+        $cForm->addHelpBlock("Musical_preferences", "(klassiek, pop, jazz, blues, rock, rap, anders)");
+        $cForm->addTextInput("Zet je muziek in om je stemming te beïnvloeden", "Mood_music_usage");
+        $cForm->addHelpBlock("Mood_music_usage", "(nooit, soms, vaak)");
+        
+        // add a new section of inputs
+        $cForm->addLegend("Systematische n=1 methode");
+        $cForm->addRadioGroup("Akkoord dat bekenden vragenlijst invullen?", "Allow_relatives", array("Ja", "Nee"));
+        $cForm->addTextArea("Gekozen netwerk die vragenlijst gaat invullen", "Chosen_relatives");
+        $cForm->addTextArea("Email adressen van dit netwerk", "Email_relatives");
+        
+        // add form buttons
+        $cForm->addButton("createClient", "Aanmaken");
+        $cForm->addResetButton();
+        $formBody = $cForm->createFormBody();
+        
+        $content = '
+            <div class="well">
+                <form class="form-horizontal" id="createClientForm" onsubmit="return false">
+                    <fieldset>
+                        ' . $formBody . '
+                    </fieldset>
+                </form>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
     }
     
     private function getClientOverviewPage()
     {
+        // set page vars
+        $this->page = "client";
+        $this->title = "Client overzicht";
+        $this->breadcrumbs = array("Client", "Overzicht");
         
+        $content = '
+            <div class="well">
+                <table class="table table-striped table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th>Naam</th>
+                            <th>E-mail</th>
+                            <th>Geslacht</th>
+                            <th>Plaats</th>
+                        </tr>
+                    </thead>
+        ';
+        // fetch all clients from the database
+        $cUser = new User();
+        $allClients = $cUser->getAllClients();
+        // only begin loop when result is not null
+        if(!is_null($allClients))
+        {
+            foreach($allClients as $user) // print info in table
+            {
+                $content .= "
+                        <tr>
+                            <td><a href='/client/" . $user->UserID . "/' class='btn btn-link'>" . $user->Name . "</a></td>
+                            <td>" . $user->Email . "</td>
+                            <td>" . $user->Gender . "</td>
+                            <td>" . $user->Place . "</td>
+                        </tr>
+                ";
+            }
+        }
+        
+        $content .= '
+                </table>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
     }
     
+    private function getClientDetailsPage($userID)
+    {
+        $cUser = new User();
+        $userDetails = $cUser->getUserById($userID);
+        
+        // set page vars
+        $this->page = "client";
+        $this->title = $userDetails->Name;
+        $this->breadcrumbs = array("Client", "Overzicht", $userDetails->Name);
+        
+        
+        return $this->buildPage($userDetails->Place, false);
+    }
+
     public function getQuestionListPage($subpage = null)
     {
-        switch($subpage)
+        if(is_numeric($subpage))
         {
-            case "aanmaken":
-                return $this->getQuestionListAanmakenPage();
-            case "overzicht":
-            default:
-                return $this->getQuestionListOverzichtPage();
+            return $this->getQuestionListDetailsPage($subpage);
+        }
+        else
+        {
+            switch($subpage)
+            {
+                case "aanmaken":
+                    return $this->getQuestionListCreatePage();
+                case "overzicht":
+                default:
+                    return $this->getQuestionListOverviewPage();
+            }
         }
     }
 
     private function getQuestionListCreatePage()
     {
+        // set page vars
+        $this->page = "vragenlijst";
+        $this->title = "Vragenlijst aanmaken";
+        $this->breadcrumbs = array("Vragenlijst", "Aanmaken");
         
+        $cForm = new FormInputs();
+        $cForm->addLegend("Vragenlijst details");
+        $cForm->addTextInput("Naam", "Name", true);
+        $cForm->addLegend("Vragen");
+        $formBody = $cForm->createFormBody();
+        
+        $content = '
+            <div class="well">
+                <form class="form-horizontal" id="createQuestionListForm" onsubmit="return false">
+                    <fieldset>
+                        ' . $formBody . '
+                            
+                        <div class="questions">
+                        
+                            <div class="form-group question">
+                                <div class="col-lg-12">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">1.</span>
+                                        <input type="text" class="form-control input-question" name="question" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-danger" type="button">X</button>
+                                        </span>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" class="multiple-choice" checked> Meerkeuze
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group answers">
+                                <label class="col-lg-2 control-label">Antwoorden</label>
+                                <div class="col-lg-10">
+                                    <div class="input-group answer">
+                                        <span class="input-group-addon">1.</span>
+                                        <input type="text" class="form-control input-answer" name="answer" required>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-danger removeAnswer" type="button">X</button>
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-success addAnswer" type="button"><i class="glyphicon-plus"></i> Antwoord</button>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="col-lg-12">
+                                <a href="javascript:;" class="btn btn-success addQuestion"><i class="glyphicon-plus"></i> Vraag</a>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="col-lg-12 text-right">
+                                <button type="reset" class="btn btn-default btnReset">Reset</button> <button type="submit" class="btn btn-primary" id="button-createQuestionlist" name="button-createQuestionlist">Aanmaken</button>
+                            </div>
+                        </div>
+
+
+                    </fieldset>
+                </form>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
     }
     
     private function getQuestionListOverviewPage()
     {
+        // set page vars
+        $this->page = "vragenlijst";
+        $this->title = "Vragenlijst overzicht";
+        $this->breadcrumbs = array("Vragenlijst", "Overzicht");
+                
+        $content = '
+            <div class="well">
+                <table class="table table-striped table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th>Naam</th>
+                            <th>Aantal vragen</th>
+                        </tr>
+                    </thead>
+        ';
+        // fetch all clients from the database
+        $cQuestionList = new QuestionList();
+        $allQuestionLists = $cQuestionList->getAllQuestionLists();
+        // only begin loop when result is not null
+        if(!is_null($allQuestionLists))
+        {
+            foreach($allQuestionLists as $list) // print info in table
+            {
+                $questions = $cQuestionList->getQuestions($list->QuestionlistID);
+                $content .= "
+                        <tr>
+                            <td><a href='/vragenlijst/" . $list->QuestionlistID . "/' class='btn btn-link'>" . $list->Name . "</a></td>
+                            <td>" . count($questions) . "</td>
+                        </tr>
+                ";
+            }
+        }
         
+        $content .= '
+                </table>
+            </div>
+        ';
+        
+        return $this->buildPage($content);
     }
 
 }

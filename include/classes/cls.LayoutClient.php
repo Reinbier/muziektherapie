@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author: Reinier Gombert
+ * @author: Reinier Gombert, Patrick Pieper
  * @date: 5-dec-2016
  */
 class LayoutClient extends Layout
@@ -10,19 +10,12 @@ class LayoutClient extends Layout
     private $page;
     private $title;
     private $userID;
-    private $cUser;
-    private $cTreatment;
-    private $cMeasurement;
-    private $cAnswer;
-    private $cQuestionList;
+
 
     public function __construct($userID)
     {
         parent::__construct();
         $this->userID = $userID;
-        $this->cUser = new User();
-        $this->cTreatment = new Treatment();
-        $this->cMeasurement = new Measurement();
     }
 
     private function buildPage($content = "No content found..", $sidebar = true)
@@ -93,6 +86,9 @@ class LayoutClient extends Layout
     {
         $header = parent::getHeader();
 
+        $cUser = new User();
+        $userData = $cUser->getUserById($this->userID);
+
         $header .= '
         <nav class="navbar navbar-default">
             <div class="container-fluid">
@@ -113,7 +109,7 @@ class LayoutClient extends Layout
                         <li ' . ($this->page == "vragenlijst" ? 'class="active"' : '') . '><a href="/vragenlijst/">Vragenlijsten</a></li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        <li class="navbar-text">Ingelogd als '. $this->cUser->getUserById($this->userID)->Name .'</li>
+                        <li class="navbar-text">Ingelogd als '. $userData->Name .'</li>
                         <li><a href="/?logout">Uitloggen <span class="sr-only">(current)</span></a></li>
                     </ul>
                 </div>
@@ -123,17 +119,39 @@ class LayoutClient extends Layout
         return $header;
     }
 
+    public function getQuestionListPage($subpage = null)
+    {
+        if(is_numeric($subpage))
+        {
+            return $this->getQuestionListDetailsPage($subpage);
+        }
+        else
+        {
+            switch($subpage)
+            {
+                case "aanmaken":
+                    return $this->getQuestionListCreatePage();
+                case "overzicht":
+                default:
+                    return $this->getQuestionListOverviewPage();
+            }
+        }
+    }
+
     public function getHomePage()
     {
         $this->page = "home";
         $this->title = "Startpagina";
         $announcement ="";
 
+        $cUser = new User();
+        $userData = $cUser->getUserById($this->userID);
+
         $content = '
         <div class="row">
-            <h1>Welkom '. $this->cUser->getUserById($this->userID)->Name .'</h1>
+            <h3>Welkom '. $userData->Name .'</h3>
             <div class="col-md-6 col-md-offset-1 well">
-                <h3>Meldingen</h3>
+                <h4>Meldingen</h4>
                 <p class="lead">Op dit moment geen meldingen om weer te geven</p>
             </div>
         </div>
@@ -144,23 +162,27 @@ class LayoutClient extends Layout
 
     public function getProgressPage()
     {
+        $cTreatment = new Treatment();
         $output = "";
         
-        $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
+        $treatment = $cTreatment->getTreatmentByUserID($this->userID);
         
-        $NumOfMeasurements = $this->cMeasurement->getTotalMeasurementsByTreatmentID($treatment->TreatmentID);
-        
-        $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-        
-        if ($measurements) 
+        $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+
+
+        if ($measurements)
         {
+            $cQuestionlist = new QuestionList();
+            $cMeasurement = new Measurement();
             foreach ($measurements as $measurement)
             {
-                $points = $this->cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
+                $questionListID = $cQuestionlist->getQuestionListIDByMeasurementID($measurement->MeasurementID);
+
+                $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $this->userID);
                 $output .= "
                 <div class='col-md-6'>
                     <div class='well text-center'>
-                        <p class='points'>" . ($points != NULL ? $points : "n.t.b.") . "</p>
+                        <p class='points'>" . (!$cQuestionlist->isComplete($questionListID) ? "n.t.b." : $points) . "</p>
                         " . $measurement->Name . "
                     </div>
                 </div> ";
@@ -199,15 +221,16 @@ class LayoutClient extends Layout
         return $this->buildPage($content, false);
     }
 
-    public function getQuestionListPage()
+    public function getQuestionListOverviewPage()
     {
+        $this->page = "overzicht";
+        $this->title = "Vragenlijsten";
+        $cTreatment = new Treatment();
+        $treatment = $cTreatment->getTreatmentByUserID($this->userID);
 
-        $treatment = $this->cTreatment->getTreatmentByUserID($this->userID);
-
-        $measurements = $this->cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+        $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
         $cQuestionList = new QuestionList();
 
-        $cAnswer = new Answer();
 
         if (!$measurements)
         {
@@ -217,42 +240,118 @@ class LayoutClient extends Layout
         {
             $output = '';
             foreach ($measurements as $measurement)
-            {   
+            {
                 $questionlistID = $measurement->QuestionlistID;
 
-                $questionlist = $cQuestionList->getQuestionList($questionlistID);
+                $questionlistName = $cQuestionList->getQuestionListNameByID($questionlistID);
 
-                $complete = $cAnswer->checkAnswers($this->userID, $measurement->MeasurementID);
-                if ($complete)
+
+
+                if ($cQuestionList->isComplete($questionlistID))
                 {
                     $output .= 
-                        '<div class="col-md-4" style="background-color: #1d9ce5">
-                            complete        
+                        '<div class=" col-md-4">
+                            <div class="well">
+                                <div class="label label-success">
+                                    Volledig ingevuld
+                                </div>
+                                <h1> '. $questionlistName .'</h1>
+                                <p class="lead">' . $measurement->Name . '</p>
+                                <a href="/vragenlijst/' . $questionlistID .'/" class="btn btn-primary">Naar vragenlijst</a>
+                             </div>
                         </div>';
                 }
                 else
                 {
                     $output .= 
-                        '<div class="col-md-4" style="background-color: #7b1115">
-                            Incompleter
+                        '<div class=" col-md-4">
+                            <div class="well">
+                                <div class="label label-warning">
+                                    Nog niet volledig ingevuld
+                                </div>
+                                <h1> '. $questionlistName .'</h1>
+                                <p class="lead">' . $measurement->Name . '</p>
+                                <a href="/vragenlijst/' . $questionlistID .'/" class="btn btn-primary">Naar vragenlijst</a>
+                            </div>
                         </div>';
                 }
-                
-                $output .= "</div>";   
             }
-
-            
         }
-
-        $this->page = "vragenlijst";
-        $this->title = "Vragenlijsten";
 
         $content = '
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-12">
                 '. $output .' 
             </div>
         </div>';
+
+        return $this->buildPage($content, false);
+    }
+
+    public function getQuestionListDetailsPage($questionListID)
+    {
+        $cQuestionlist = new QuestionList();
+        $questionListName = $cQuestionlist->getQuestionListNameByID($questionListID);
+        $this->page = "vragenlijst";
+        $this->title = $questionListName;
+        $this->breadcrumbs = array("vragenlijst", $questionListName);
+
+        $formbody = "Geen vragen gevonden";
+        $cQuestionlist = new QuestionList();
+        $cQuestion = new Question();
+        $cForminputs = new FormInputs();
+        $cForminputs->setLabelWidth(1);
+        $cForminputs->setInputWidth(11);
+        $cForminputs->disableMandatoryNotification();
+
+        $questions = $cQuestionlist->getQuestions($questionListID);
+        if($questions)
+        {
+            foreach ($questions as $question)
+            {
+                if($cQuestion->isMultipleChoice($question->QuestionID))
+                {
+                    $pos_answers = $cQuestion->getPossibleAnswers($question->QuestionID);
+                    if (!empty($pos_answers))
+                    {
+                        $selectedAnswer = $cQuestion->getSelectedAnswer($question->QuestionID);
+                        $aAnswers = array();
+                        foreach($pos_answers as $pos_answer)
+                        {
+                            $aAnswers[$pos_answer->PossibleID] = $pos_answer->Answer;
+                        }
+                        $cForminputs->addMultipleChoiceQuestion($question->Question ,$aAnswers, $selectedAnswer);
+                    }
+
+                }
+                else
+                {
+                    $answer = $cQuestion->getAnswer($question->QuestionID);
+                    $cForminputs->addOpenQuestion($question->Question, $answer);
+                }
+            }
+            $cForminputs->addButton("fillInQuestionList", "Verzenden");
+
+            $formbody = $cForminputs->createFormBody();
+        }
+
+
+
+
+
+        $content =
+            '<div class="row">
+                <div class="col-md-12">
+                    <div class="well">
+                        <form class="form-horizontal" onsubmit="return false;">
+                            <fieldset>
+                            '. $formbody .'
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            ';
 
         return $this->buildPage($content, false);
     }

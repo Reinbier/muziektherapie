@@ -14,34 +14,9 @@ if (isset($_REQUEST['action']))
 
 	if ($action === 'drawGraph')
 	{
-		$cRole = new Role();
+		$cTreatment = new Treatment();
 
-		$cTreatment = new Treatment(); 
-
-		$cMeasurement = new Measurement();
-
-		$roleName = $cRole->getRoleByUserID($userID);
-
-		if ($roleName === 'Therapeut') {
-			
-		}
-		else
-		{
-			$aParams = array();
-
-			$treatment = $cTreatment->getTreatmentByUserID($userID);
-
-			$measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-
-			if ($measurements) {
-		        foreach ($measurements as $measurement)
-		        {
-	            	$points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
-	            	$name = $measurement->Name;
-
-	            	$aParams[] = array("measurement" => $name, "points" => $points);
-		        }
-			}
+		$aParams = $cTreatment->drawGraph($userID, "client");
 			if (!empty($aParams))
 			{
 	        	echo 
@@ -62,6 +37,6 @@ if (isset($_REQUEST['action']))
 	        			)
         		);	
 	        }	        
-		}
+		//}
 	}
 }

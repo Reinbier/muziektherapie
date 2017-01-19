@@ -61,4 +61,66 @@ class Treatment extends DAL
 		return $result;
 	}
 
+    public function drawGraph($userID, $roleName)
+    {
+        $cQuestionList = new QuestionList();
+        $cUser = new User();
+
+        $cTreatment = new Treatment();
+
+        $cMeasurement = new Measurement();
+        $aParams = array();
+
+        if ($roleName === 'Therapeut') {
+            $treatment = $cTreatment->getTreatmentByUserID($userID);
+
+            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+
+            if($measurements)
+            {
+                $aParams = array();
+                foreach($measurements as $measurement)
+                {
+                   $users = $cUser->getUsersByTreatmentID($treatment->TreatmentID);
+                   $name = $measurement->Name;
+                    $aUsers = array();
+                    foreach ($users as $user)
+                    {
+                        if($cQuestionList->isComplete($measurement->QuestionlistID))
+                       {
+                           $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $user->UserID);
+                           if(is_null($points))
+                           {
+                               $points = 0;
+                           }
+                           $aUsers[$user->Name] = (int) $points;
+                       }
+                   }
+                   arsort($aUsers);
+                   $aParams[] = array("measurement" => $name) + $aUsers;
+               }
+
+            }
+        }
+        else {
+            die(var_dump($userID));
+            $treatment = $cTreatment->getTreatmentByUserID($userID);
+
+            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+
+            if ($measurements) {
+                foreach ($measurements as $measurement) {
+                    $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
+                    $name = $measurement->Name;
+
+                    if($cQuestionList->isComplete($measurement->QuestionlistID))
+                    {
+                        $aParams[] = array("measurement" => $name, "points" => $points);
+                    }
+                }
+            }
+        }
+        return $aParams;
+    }
+
 }

@@ -87,6 +87,14 @@ class Measurement extends DAL
 		return $result;
 	}
 
+	public function getPointsByMeasurementID()
+    {
+
+    }
+
+
+
+
 	
 
 

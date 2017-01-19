@@ -80,11 +80,9 @@ class Page extends DAL
         {
             case 'voortgang':
                 return $cLayoutClient->getProgressPage();
-                break;
 
             case 'vragenlijst':
-                return $cLayoutClient->getQuestionListPage();
-                break;
+                return $cLayoutClient->getQuestionListPage($this->subpage);
 
             case "home":
             default:

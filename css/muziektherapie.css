@@ -17,3 +17,8 @@ html
 	color: grey;
 	font-size: 5rem;
 }
+
+.qList-button
+{
+	float: right !important;
+}

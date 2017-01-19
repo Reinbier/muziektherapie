@@ -23,6 +23,29 @@ $(document).ready(function () {
     {
         drawGraph();
     }
+    
+    if ($(".dataTable").length)
+    {
+        $(".dataTable").DataTable({
+             "sPaginationType": "simple_numbers",
+             "oLanguage": {
+                 "sLengthMenu": "_MENU_ Resultaten/pagina",
+                 "sZeroRecords": "Geen resultaten gevonden",
+                 "sInfo": "_START_ - _END_ van de _TOTAL_ resultaten",
+                 "sInfoEmpty": "0 resultaten",
+                 "sInfoFiltered": "(gefilterd uit _MAX_ resultaten)",
+                 "sSearch": "Zoeken:",
+                 "oPaginate": {
+                     "sFirst": "Eerste",
+                     "sPrevious": "&larr;",
+                     "sNext": "&rarr;",
+                     "sLast": "Laatste"
+                 }
+             },
+             "iDisplayLength": 10,
+             "order": [[0, "desc"]]
+         });
+     }
 
     // catch every button-click
     $(document).on('click', 'button[type="submit"]', function (e) {
@@ -41,7 +64,8 @@ $(document).ready(function () {
                 case 'button-createClient':
                     parameters = createClient();
                     break;
-                case '':
+                case 'button-createQuestionlist':
+                    parameters = createQuestionList();
                     break;
             }
 
@@ -77,8 +101,42 @@ function createTherapist()
         return {
             url: '/include/ajax/therapist.php',
             data: {
-                action: JSON.stringify('create'),
+                action: JSON.stringify('createTherapist'),
                 therapistParams: JSON.stringify(therapistData)
+            }
+        };
+    }
+    return null;
+}
+
+function createClient()
+{
+    if ($("#createClientForm")[0].checkValidity())
+    {
+        var clientData = getAllInputData("createClientForm");
+
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('createClient'),
+                clientParams: JSON.stringify(clientData)
+            }
+        };
+    }
+    return null;
+}
+
+function createQuestionList()
+{
+    if ($("#createQuestionListForm")[0].checkValidity())
+    {
+        var questionListData = getAllInputData("createQuestionListForm");
+
+        return {
+            url: '/include/ajax/questionlist.php',
+            data: {
+                action: JSON.stringify('createQuestionList'),
+                therapistParams: JSON.stringify(questionListData)
             }
         };
     }
@@ -130,14 +188,14 @@ function drawGraph()
         url: "/include/ajax/client.php",
         type: "POST",
         data: {action: JSON.stringify("drawGraph")},
-        dataType: "json",
+        dataType: "json"
     });
     request.done(function (msg) {
         if(msg.status == "ok")
         {
             new Morris.Line({
                 element: 'progressChart',
-                data: msg,
+                data: msg.result,
                 xkey: 'measurement',
                 parseTime: false,
                 ykeys: ['points'],
