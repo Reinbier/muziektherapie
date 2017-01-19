@@ -41,14 +41,14 @@ class LayoutNaaste extends Layout
                     </nav>
                 ';
     }
-<<<<<<< HEAD
+
     /** Displays the homepage of the specific user
      * 
      * @return type
      */
-=======
 
->>>>>>> master
+
+
     public function getHomePage()
     {
         $return = '
@@ -62,11 +62,10 @@ class LayoutNaaste extends Layout
                                   <h3 class="panel-title">Meteen naar:</h3>
                                 </div>
                                 <div class="panel-body">
-<<<<<<< HEAD
-                                  <a href="metingstarten.html" class="btn btn-success">Vragenlijst invullen</a>
-=======
+                                <a href="metingstarten.html" class="btn btn-success">Vragenlijst invullen</a>
+
                                   <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
->>>>>>> master
+
                                 </div>
                               </div>
                         </div>
@@ -83,7 +82,7 @@ class LayoutNaaste extends Layout
         
         return $this->getHeader() . parent::getContent($return) . $this->getFooter();
     }
-<<<<<<< HEAD
+
     /** returns a page with a guestionlist the user can interact with.
      * @return the webpage 
      */
@@ -104,7 +103,7 @@ class LayoutNaaste extends Layout
             ';
         
         return $this->getHeader() . parent::getContent($return) . $this->getFooter();
-=======
+    }
     
     public function insertQuestionList($questionlistID)
     {
@@ -123,6 +122,6 @@ class LayoutNaaste extends Layout
                 </div>
 
         ';
->>>>>>> master
     }
+
 }
