@@ -179,7 +179,7 @@ class LayoutClient extends Layout
                     $output .= "
                 <div class='col-md-6'>
                     <div class='well text-center'>
-                        <p class='points'>" . (!$cQuestionlist->isComplete($questionListID) ? "n.t.b." : $points) . "</p>
+                        <p class='points'>" . (!$cQuestionlist->isComplete($questionListID, $this->userID) ? "n.t.b." : $points) . "</p>
                         " . $measurement->Name . "
                     </div>
                 </div> ";
@@ -240,7 +240,7 @@ class LayoutClient extends Layout
                     $questionlistName = $cQuestionList->getQuestionListNameByID($questionlistID);
 
 
-                    if ($cQuestionList->isComplete($questionlistID)) {
+                    if ($cQuestionList->isComplete($questionlistID, $this->userID)) {
                         $output .=
                             '<div class=" col-md-4">
                             <div class="well">

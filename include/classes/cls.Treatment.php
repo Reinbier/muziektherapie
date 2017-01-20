@@ -156,7 +156,7 @@ class Treatment extends DAL
                         $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
                         $name = $measurement->Name;
 
-                        if($cQuestionList->isComplete($measurement->QuestionlistID))
+                        if($cQuestionList->isComplete($measurement->QuestionlistID, $userID))
                         {
                             $aParams[] = array("measurement" => $name, "points" => $points);
                         }
