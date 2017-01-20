@@ -24,8 +24,8 @@ class QuestionList extends DAL
                 VALUES (:name)";
 
         return $this->query($sql, array(
-                ":name" => array($Name, PDO::PARAM_STR)
-            )
+                    ":name" => array($Name, PDO::PARAM_STR)
+                        )
         );
     }
 
@@ -41,8 +41,8 @@ class QuestionList extends DAL
                 WHERE QuestionlistID = :questionlistID";
 
         $result = $this->query($sql, array(
-                ":questionlistID" => array($questionListID, PDO::PARAM_INT)
-            )
+            ":questionlistID" => array($questionListID, PDO::PARAM_INT)
+                )
         );
 
         return $result;
@@ -56,7 +56,7 @@ class QuestionList extends DAL
 
         $list = $this->query($sql, array(
             ":questionListID" => array($questionlistID, PDO::PARAM_INT)
-        ), "column");
+                ), "column");
 
         return $list;
     }
@@ -76,7 +76,7 @@ class QuestionList extends DAL
 
         $result = $this->query($query, array(
             "measurementID" => array($measurementID, PDO::PARAM_INT)
-        ), "column");
+                ), "column");
 
         return $result;
     }
@@ -116,42 +116,102 @@ class QuestionList extends DAL
 
     public function getCompletionDate($questionListID, $userID)
     {
+        // get al questions
         $questions = $this->getQuestions($questionListID);
 
         if ($questions)
         {
+            //prepare array
+            $aDates = array();
             $cQuestion = new Question();
             foreach ($questions as $question)
             {
                 if ($cQuestion->isMultipleChoice($question->QuestionID))
                 {
-                    if (is_null($cQuestion->getSelectedAnswer($question->QuestionID, $userID)))
-                    {
-                        $complete = false;
-                    }
+                    $answer = is_null($cQuestion->getSelectedAnswer($question->QuestionID, $userID));
                 }
                 else
                 {
-                    if (is_null($cQuestion->getAnswer($question->QuestionID, $userID)))
-                    {
-                        $complete = false;
-                    }
+                    $answer = is_null($cQuestion->getAnswer($question->QuestionID, $userID));
                 }
+                // add date of answered to array
+                $aDates[] = $answer->Date;
             }
+
+            // get max date
+            $date = max(array_map('strtotime', $aDates));
         }
         else
         {
-            $complete = false;
+            $date = false;
         }
 
+        // return the max date or false
+        return $date;
+    }
 
-        return date("d-m-Y H:i:s");
+    public function getLogRegistry($therapistID)
+    {
+        $cTreatment = new Treatment();
+        $cUser = new User();
+
+        $subjects = $cUser->getAllSubjects($therapistID);
+
+        $return = null;
+        // if there are none
+        if (!is_null($subjects))
+        {
+            $aLogs = array();
+            foreach ($subjects as $subject)
+            {
+                $userID = $subject->UserID;
+                $treatmentID = $subject->TreatmentID;
+                $treatmentData = $cTreatment->getTreatmentByTreatmentID($treatmentID);
+                $treatmentName = $treatmentData->Name;
+
+                $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
+
+                if (!is_null($measurements))
+                {
+                    foreach ($measurements as $measurement)
+                    {
+                        $questionlistID = $measurement->QuestionlistID;
+
+                        if ($this->isComplete($questionlistID))
+                        {
+                            $dateQLComplete = $this->getCompletionDate($questionlistID, $userID);
+                            $questionlistName = $this->getQuestionListNameByID($questionlistID);
+                            $measurementName = $measurement->Name;
+                            
+                            $userName = $cUser->getUserById($userID)->Name;
+
+                            $aLogs[] = array("date" => $dateQLComplete,
+                                            "QL_Name" => $questionlistName,
+                                            "MM_Name" => $measurementName,
+                                            "TMT_Name" => $treatmentName,
+                                            "userName" => $userName);
+                        }
+                    }
+                }
+            }
+
+            // sort by a defined function
+            usort($aLogs, function($a1, $a2) {
+                $v1 = strtotime($a1['date']);
+                $v2 = strtotime($a2['date']);
+                return $v2 - $v1; // $v2 - $v1 to reverse direction
+            });
+            
+            // return the array
+            $return = $aLogs;
+        }
+        return $return;
     }
 
     public function checkTreatment($userID, $questionListID)
     {
         $sql = "SELECT *
-                FROM TREATMENT a, TREATMENT_USER b, Measurement c
+                FROM TREATMENT a, TREATMENT_USER b, MEASUREMENT c
                 WHERE a.TreatmentID = c.TreatmentID
                 AND a.TreatmentID = b.TreatmentID
                 AND b.UserID = :userID
@@ -160,13 +220,13 @@ class QuestionList extends DAL
         $result = $this->query($sql, array(
             ":userID" => array(
                 $userID,
-                PDO::PARAM_INT,
+                PDO::PARAM_INT
             ),
             "qlID" => array(
                 $questionListID,
-                PDO::PARAM_INT,
-            ),
+                PDO::PARAM_INT
             )
+                )
         );
 
         return $result;

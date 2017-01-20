@@ -162,7 +162,7 @@ class LayoutClient extends Layout
         $cTreatment = new Treatment();
         $output = "";
         
-        $treatment = $cTreatment->getTreatmentByUserID($this->userID);
+        $treatment = $cTreatment->getActiveTreatmentByUserID($this->userID);
 
         if($treatment) {
 
@@ -223,7 +223,7 @@ class LayoutClient extends Layout
         $this->page = "vragenlijst";
         $this->title = "Vragenlijsten";
         $cTreatment = new Treatment();
-        $treatment = $cTreatment->getTreatmentByUserID($this->userID);
+        $treatment = $cTreatment->getActiveTreatmentByUserID($this->userID);
         if($treatment) {
 
             $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
@@ -291,15 +291,12 @@ class LayoutClient extends Layout
         $this->page = "vragenlijst";
         $this->title = $questionListName;
         $this->breadcrumbs = array("vragenlijst", $questionListName);
-
         $treatmentCheck = $cQuestionlist->checkTreatment($this->userID, $questionListID);
-
         if(is_null($treatmentCheck))
         {
             return $this->getQuestionListOverviewPage();
         }
         else {
-
 
             $formbody = "Geen vragen gevonden";
             $cQuestion = new Question();

@@ -27,17 +27,58 @@ class Treatment extends DAL
 	}
 
 	/**
-	 * Gets treatment where the measurement is linked to.
+	 * Get all treatments for a user.
+         * 
+	 * @param  int $userID 	  The ID of the user which treatments we have to find.
+	 * @return [type]         returns the treatments.
+	 */
+	public function getTreatmentsByUserID($userID)
+	{
+		$sql = "SELECT *
+                        FROM TREATMENT_USER
+                        WHERE UserID = :userID
+                        ORDER BY TreatmentID";
+
+		$result = $this->query($sql, array(
+			":userID" => array($userID, PDO::PARAM_INT))
+                        );
+
+		return $result;
+	}
+        
+        /**
+	 * Get treatment
+         * 
+	 * @param  int $treatmentID 	  The ID of the treatment
+	 * @return [object]         returns the treatment data.
+	 */
+	public function getTreatmentByTreatmentID($treatmentID)
+	{
+		$sql = "SELECT *
+                        FROM TREATMENT
+                        WHERE TreatmentID = :treatmentid";
+
+		$result = $this->query($sql, array(
+			":treatmentid" => array($treatmentID, PDO::PARAM_INT)),
+                        "one"
+                        );
+
+		return $result;
+	}
+        
+        /**
+	 * Gets active treatment where the measurement is linked to.
+         * 
 	 * @param  int $userID 	  The ID of the user which treatment we have to find.
 	 * @return [type]         returns the treatment ID of the treatment where user with $userID is patient.
 	 */
-	public function getTreatmentByUserID($userID)
+	public function getActiveTreatmentByUserID($userID)
 	{
 		$sql = "SELECT *
-				FROM TREATMENT_USER a, TREATMENT b
-				WHERE a.UserID = :userID
-				AND a.TreatmentID = b.TreatmentID
-				AND b.Active = 1";
+                        FROM TREATMENT_USER a, TREATMENT b
+                        WHERE a.UserID = :userID
+                        AND a.TreatmentID = b.TreatmentID
+                        AND b.Active = 1";
 
 		$result = $this->query($sql, array(
 			":userID" => array($userID, PDO::PARAM_INT)),
@@ -49,8 +90,8 @@ class Treatment extends DAL
 	public function getMeasurementsbyTreatmentID($treatmentId)
 	{
 		$sql = "SELECT *
-				FROM MEASUREMENT
-				WHERE TreatmentID = :treatmentid";
+                        FROM MEASUREMENT
+                        WHERE TreatmentID = :treatmentid";
 
 		$result = $this->query($sql, array(
 			":treatmentid" => array(
@@ -72,7 +113,7 @@ class Treatment extends DAL
         $aParams = array();
 
         if ($roleName === 'Therapeut') {
-            $treatment = $cTreatment->getTreatmentByUserID($userID);
+            $treatment = $cTreatment->getActiveTreatmentByUserID($userID);
 
             $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
 
@@ -103,19 +144,22 @@ class Treatment extends DAL
             }
         }
         else {
-            die(var_dump($userID));
-            $treatment = $cTreatment->getTreatmentByUserID($userID);
 
-            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+            $treatment = $cTreatment->getActiveTreatmentByUserID($userID);
 
-            if ($measurements) {
-                foreach ($measurements as $measurement) {
-                    $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
-                    $name = $measurement->Name;
+            if($treatment)
+            {
+                $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
 
-                    if($cQuestionList->isComplete($measurement->QuestionlistID))
-                    {
-                        $aParams[] = array("measurement" => $name, "points" => $points);
+                if ($measurements) {
+                    foreach ($measurements as $measurement) {
+                        $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
+                        $name = $measurement->Name;
+
+                        if($cQuestionList->isComplete($measurement->QuestionlistID))
+                        {
+                            $aParams[] = array("measurement" => $name, "points" => $points);
+                        }
                     }
                 }
             }
