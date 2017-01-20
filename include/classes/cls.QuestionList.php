@@ -24,8 +24,8 @@ class QuestionList extends DAL
                 VALUES (:name)";
 
         return $this->query($sql, array(
-            ":name" => array($Name, PDO::PARAM_STR),
-                )
+                ":name" => array($Name, PDO::PARAM_STR)
+            )
         );
     }
 
@@ -55,12 +55,12 @@ class QuestionList extends DAL
                 WHERE QuestionlistID = :questionListID";
 
         $list = $this->query($sql, array(
-                ":questionListID" => array($questionlistID, PDO::PARAM_INT)
-            ), "column");
+            ":questionListID" => array($questionlistID, PDO::PARAM_INT)
+        ), "column");
 
         return $list;
     }
-    
+
     public function getAllQuestionLists()
     {
         $sql = "SELECT *
@@ -70,41 +70,106 @@ class QuestionList extends DAL
 
     public function getQuestionListIDByMeasurementID($measurementID)
     {
-        $query ="SELECT QuestionlistID
+        $query = "SELECT QuestionlistID
                 FROM MEASUREMENT
                 WHERE MeasurementID = :measurementID";
 
         $result = $this->query($query, array(
-            "measurementID" => array($measurementID, PDO::PARAM_INT),
+            "measurementID" => array($measurementID, PDO::PARAM_INT)
         ), "column");
 
         return $result;
     }
 
-    public function isComplete($questionlistID)
+    public function isComplete($questionlistID, $userID)
     {
         $complete = true;
         $questions = $this->getQuestions($questionlistID);
-        if ($questions) {
+        if ($questions)
+        {
             $cQuestion = new Question();
-            foreach ($questions as $question) {
-                if ($cQuestion->isMultipleChoice($question->QuestionID)) {
-                    if (is_null($cQuestion->getSelectedAnswer($question->QuestionID))) {
+            foreach ($questions as $question)
+            {
+                if ($cQuestion->isMultipleChoice($question->QuestionID))
+                {
+                    if (is_null($cQuestion->getSelectedAnswer($question->QuestionID, $userID)))
+                    {
                         $complete = false;
                     }
-                } else {
-                    if (is_null($cQuestion->getAnswer($question->QuestionID))) {
+                }
+                else
+                {
+                    if (is_null($cQuestion->getAnswer($question->QuestionID, $userID)))
+                    {
                         $complete = false;
                     }
                 }
             }
-        } else {
+        }
+        else
+        {
             $complete = false;
         }
 
         return $complete;
     }
 
+    public function getCompletionDate($questionListID, $userID)
+    {
+        $questions = $this->getQuestions($questionListID);
 
+        if ($questions)
+        {
+            $cQuestion = new Question();
+            foreach ($questions as $question)
+            {
+                if ($cQuestion->isMultipleChoice($question->QuestionID))
+                {
+                    if (is_null($cQuestion->getSelectedAnswer($question->QuestionID, $userID)))
+                    {
+                        $complete = false;
+                    }
+                }
+                else
+                {
+                    if (is_null($cQuestion->getAnswer($question->QuestionID, $userID)))
+                    {
+                        $complete = false;
+                    }
+                }
+            }
+        }
+        else
+        {
+            $complete = false;
+        }
+
+
+        return date("d-m-Y H:i:s");
+    }
+
+    public function checkTreatment($userID, $questionListID)
+    {
+        $sql = "SELECT *
+                FROM TREATMENT a, TREATMENT_USER b, Measurement c
+                WHERE a.TreatmentID = c.TreatmentID
+                AND a.TreatmentID = b.TreatmentID
+                AND b.UserID = :userID
+                AND c.QuestionListID = :qlID";
+
+        $result = $this->query($sql, array(
+            ":userID" => array(
+                $userID,
+                PDO::PARAM_INT,
+            ),
+            "qlID" => array(
+                $questionListID,
+                PDO::PARAM_INT,
+            ),
+            )
+        );
+
+        return $result;
+    }
 
 }

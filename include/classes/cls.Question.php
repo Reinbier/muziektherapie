@@ -70,34 +70,44 @@ Class Question extends DAL
         return $result;
     }
 
-    public function getSelectedAnswer($questionID)
+    public function getSelectedAnswer($questionID, $userID)
     {
-        $query = "SELECT PossibleAnswerID
+        $query = "SELECT *
                   FROM ANSWER
-                  WHERE QuestionID = :questionID";
+                  WHERE QuestionID = :questionID
+                  AND UserID = :userID";
 
         $result = $this->query($query, array(
             ":questionID" => array(
                 $questionID,
                 PDO::PARAM_INT,
             ),
-                ), "column");
+            ":userID" => array(
+                $userID,
+                PDO::PARAM_INT,
+            )
+        ), "one");
 
         return $result;
     }
 
-    public function getAnswer($questionID)
+    public function getAnswer($questionID, $userID)
     {
-        $query = "SELECT Answer
+        $query = "SELECT *
                   FROM ANSWER
-                  WHERE QuestionID = :questionID";
+                  WHERE QuestionID = :questionID
+                  AND UserID = :userID";
 
         $result = $this->query($query, array(
             ":questionID" => array(
                 $questionID,
                 PDO::PARAM_INT,
             ),
-                ), "column");
+            ":userID" => array(
+                $userID,
+                PDO::PARAM_INT,
+            )
+        ), "one");
 
         return $result;
     }
