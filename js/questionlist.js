@@ -54,6 +54,15 @@ $(document).ready(function () {
     $(document).on("click", ".removeAnswer", function () {
         removeAnswer($(this));
     });
+    
+    $(document).on("click", ".btnReset", function () {
+        $(".questions").find(".answers").show(function () {
+            $(this).find(".answer").each(function () {
+                // toggle the required property as well
+                $(this).find("input").prop('required', true);
+            });
+        });
+    });
 });
 
 function removeQuestion(element)

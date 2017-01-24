@@ -106,7 +106,7 @@ class User extends DAL
             $values .= ", " . $this->getEncryptValueString(":" . $columnName);
             $aQueryParams[":" . $columnName] = array($value, PDO::PARAM_STR);
         }
-        
+
         // insert user
         $sql = "INSERT INTO USER (" . $fields . ")
                 VALUES (" . $values . ")";
@@ -118,67 +118,118 @@ class User extends DAL
 
     public function insertUserRole($userID, $roleName)
     {
+        $cRole = new Role();
+
         $sql = "INSERT INTO USER_ROLE (RoleID, UserID)
                 VALUES (:roleid, :userid)";
         return $this->query($sql, array(
-                    ":roleid" => array($this->getRoleIDByName($roleName), PDO::PARAM_INT),
+                    ":roleid" => array($cRole->getRoleIDByName($roleName), PDO::PARAM_INT),
                     ":userid" => array($userID, PDO::PARAM_INT)
         ));
     }
 
-    public function getRoleIDByName($roleName)
+    public function getAllUsers($roles = null)
     {
-        $sql = "SELECT RoleID 
-                FROM ROLE
-                WHERE Role_name = :name";
-        return $this->query($sql, array(
-                    ":name" => array($roleName, PDO::PARAM_STR)
-        ), "column");
+        $fields = $this->getDecryptedTableFields("USER");
+
+        if (is_null($roles))
+        {
+            $sql = "SELECT " . $fields . "
+                    FROM USER";
+        }
+        else
+        {
+            $roles = convertRolesToStringForQuery($roles);
+            
+            $sql = "SELECT " . $fields . "
+                FROM USER
+                WHERE UserID IN (SELECT a.UserID
+                                FROM USER_ROLE a, ROLE b
+                                WHERE b.Role_name IN (" . $roles . ")
+                                AND a.RoleID = b.RoleID)
+                ORDER BY Name";
+        
+        }
+        $result = $this->query($sql);
+
+        return $result;
     }
 
     public function getAllClients()
     {
+        $cRole = new Role();
+
         $fields = $this->getDecryptedTableFields("USER");
-        $userRoleID = $this->getRoleIDByName("Client");
-        
+        $userRoleID = $cRole->getRoleIDByName("Client");
+
         $sql = "SELECT " . $fields . "
                 FROM USER
                 WHERE UserID IN (SELECT UserID
                                 FROM USER_ROLE
-                                WHERE RoleID = :roleid)";
+                                WHERE RoleID = :roleid)
+                ORDER BY Name";
         $result = $this->query($sql, array(
             ":roleid" => array($userRoleID, PDO::PARAM_INT)
         ));
-        
+
+        return $result;
+    }
+
+    /**
+     * Will get all subjects of a therapist where they have common treatments
+     * 
+     * @param int $therapistID
+     * @return object
+     */
+    public function getAllSubjects($therapistID)
+    {
+        $sql = "SELECT *
+                FROM TREATMENT_USER
+                WHERE TreatmentID IN (SELECT TreatmentID
+                                      FROM TREATMENT_USER
+                                      WHERE UserID = :therapistid)";
+        $result = $this->query($sql, array(
+                    ":therapistid" => array($therapistID, PDO::PARAM_INT)
+        ));
         return $result;
     }
 
     public function getAllTherapists()
     {
+        $cRole = new Role();
+
         $fields = $this->getDecryptedTableFields("USER");
-        $userRoleID = $this->getRoleIDByName("Therapeut");
-        
+        $userRoleID = $cRole->getRoleIDByName("Therapeut");
+
         $sql = "SELECT " . $fields . "
                 FROM USER
                 WHERE UserID IN (SELECT UserID
                                 FROM USER_ROLE
-                                WHERE RoleID = :roleid)";
+                                WHERE RoleID = :roleid)
+                ORDER BY Name";
         $result = $this->query($sql, array(
             ":roleid" => array($userRoleID, PDO::PARAM_INT)
         ));
-        
+
         return $result;
     }
 
     public function getUsersByTreatmentID($treatmentID)
     {
-        $query = "SELECT *
-                  FROM TREATMENT_USER
-                  WHERE TreatmentID = :treatmentID";
-
-        $this->query($query, array(
-
+        $fields = $this->getDecryptedTableFields("USER");
+        $query = "SELECT " . $fields . "
+                  FROM USER
+                  WHERE UserID IN (SELECT UserID 
+                                   FROM TREATMENT_USER
+                                   WHERE TreatmentID = :treatmentID)
+                  ORDER BY Name";
+        $result = $this->query($query, array(
+            ":treatmentID" => array(
+                $treatmentID,
+                PDO::PARAM_INT,
+            ),
         ));
+        return $result;
     }
 
 }

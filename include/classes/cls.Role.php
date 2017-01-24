@@ -55,4 +55,21 @@ class Role extends DAL
         return $result;
     }
 
+    /**
+     * Gets the roleID that belongs to this roleName (in dutch).
+     * This method will also convert the first letter of the roleName to uppercase.
+     * 
+     * @param  String $roleName
+     * @return Int
+     */
+    public function getRoleIDByName($roleName)
+    {
+        $sql = "SELECT RoleID 
+                FROM ROLE
+                WHERE Role_name = :name";
+        return $this->query($sql, array(
+                    ":name" => array(ucfirst($roleName), PDO::PARAM_STR)
+        ), "column");
+    }
+
 }

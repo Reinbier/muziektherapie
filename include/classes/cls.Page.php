@@ -10,49 +10,48 @@ class Page extends DAL
 
     private $page;
     private $subpage;
+    private $subsubpage;
 
-    public function __construct($page = "home", $subpage = null)
+    public function __construct($page = "home", $subpage = null, $subsubpage = null)
     {
         parent::__construct();
         $this->page = $page;
         $this->subpage = $subpage;
+        $this->subsubpage = $subsubpage;
     }
     
-    /**
-     * Displays current page based on login session and user role
-     */
     public function display()
     {
-        if(isset($_SESSION["userID"])) // first check if user already logged in
+        if(isset($_SESSION["userID"]))
         {
             $cUser = new User($_SESSION["userID"]);
             
             if($cUser->isTherapist())
             {
-                echo $this->buildLayoutTherapist($_SESSION["userID"]); // show therapist specific layout
+                echo $this->buildLayoutTherapist($_SESSION["userID"]);
             }
             else if($cUser->isClient())
             {
-                echo $this->buildLayoutClient($_SESSION["userID"]); // show client specific layout
+                echo $this->buildLayoutClient($_SESSION["userID"]);
             }
             else
             {
-                echo $this->buildLayoutNaaste($_SESSION["userID"]); // show the layout for other roles
+                echo $this->buildLayoutNaaste($_SESSION["userID"]);
             }
         }
-        else // show login screen
+        else
         {
             if(isset($_POST["submitLogin"]))
             {
-                $cLogin = new Login($_POST["email"], $_POST["password"]); // login user
+                $cLogin = new Login($_POST["email"], $_POST["password"]);
                 if($cLogin->loginUser())
                 {
-                    echo $this->display(); // run this function again for a correct page view
+                    echo $this->display();
                     
                 }
                 else
                 {
-                    echo $this->buildLayoutLogin("incorrect"); // show that the user used false credentials
+                    echo $this->buildLayoutLogin("incorrect");
                 }
             }
             else
@@ -62,79 +61,45 @@ class Page extends DAL
         }
     }
     
-    /**
-     * Display the layout for the therapist based on the requested page
-     * 
-     * @param int $userID   The userID
-     * @return string       Content
-     */
     public function buildLayoutTherapist($userID)
     {
         $cLayoutTherapist = new LayoutTherapist($userID);
         
         switch($this->page)
         {
-            case "therapeut":
-                return $cLayoutTherapist->getTherapistPage($this->subpage);
-            case "client":
-                return $cLayoutTherapist->getClientPage($this->subpage);
-            case "vragenlijst":
-                return $cLayoutTherapist->getQuestionListPage($this->subpage);
+            case "nieuw":
+                return $cLayoutTherapist->getNewPage($this->subpage);
+            case "overzicht":
+                return $cLayoutTherapist->getOverviewPage($this->subpage, $this->subsubpage);
             case "home":
             default:
                 return $cLayoutTherapist->getHomePage();
         }
     }
     
-    
-    /**
-     * Display the layout for the client based on the requested page
-     * 
-     * @param int $userID   The userID
-     * @return string       Content
-     */
     public function buildLayoutClient($userID)
     {
         $cLayoutClient = new LayoutClient($userID);
         switch($this->page)
         {
-            case "voortgang":
+            case 'voortgang':
                 return $cLayoutClient->getProgressPage();
-            case "vragenlijst":
-                return $cLayoutClient->getQuestionListPage();
+
+            case 'vragenlijst':
+                return $cLayoutClient->getQuestionListPage($this->subpage);
+
             case "home":
             default:
                 return $cLayoutClient->getHomePage();
         }
     }
     
-    
-    /**
-     * Display the layout for the naaste/professional based on the requested page
-     * 
-     * @param int $userID   The userID
-     * @return string       Content
-     */
     public function buildLayoutNaaste($userID)
     {
         $cLayoutNaaste = new LayoutNaaste($userID);
-        switch($this->page)
-        {
-            case "vragenlijst":
-                return $cLayoutNaaste->getQuestionListPage();
-            case "home":
-            default:
-                return $cLayoutNaaste->getHomePage();
-        }
+        return $cLayoutNaaste->getQuestionListPage($this->subpage);
     }
     
-    
-    /**
-     * Display the layout for the login
-     * 
-     * @param string|boolean $error     String containing errortype, or false upon no errors
-     * @return string                   Content
-     */
     public function buildLayoutLogin($error = false)
     {
         $cLayoutLogin = new LayoutLogin();

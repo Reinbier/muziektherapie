@@ -18,6 +18,13 @@ $(document).ready(function () {
         format: 'DD-MM-YYYY',
         allowInputToggle: true
     });
+    
+    $(document).on("click", "button", function() {
+        if($(this)[0].hasAttribute("data-reload"))
+        {
+            location.reload();
+        }
+    });
 
     if ($('#progressChart').length)
     {
@@ -68,8 +75,14 @@ $(document).ready(function () {
                 case 'button-createClient':
                     parameters = createClient();
                     break;
+                case 'button-createKin':
+                    parameters = createKin();
+                    break;
                 case 'button-createQuestionlist':
                     parameters = createQuestionList();
+                    break;
+                case 'button-addKinToTreatment':
+                    parameters = addKinToTreatment();
                     break;
             }
 
@@ -85,6 +98,7 @@ $(document).ready(function () {
                 request.done(function (msg) {
                     displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
                     $(".btnReset").trigger("click");
+                    
                 });
                 request.fail(function (jqXHR, textStatus) {
                     displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
@@ -130,6 +144,25 @@ function createClient()
     return null;
 }
 
+function createKin()
+{
+    if ($("#createKinForm")[0].checkValidity())
+    {
+        var kinData = getAllInputData("createKinForm");
+        var roleName = $("#roleName").text();
+        
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('createKin'),
+                kinParams: JSON.stringify(kinData),
+                roleName: JSON.stringify(roleName)
+            }
+        };
+    }
+    return null;
+}
+
 function createQuestionList()
 {
     if ($("#createQuestionListForm")[0].checkValidity())
@@ -141,6 +174,25 @@ function createQuestionList()
             data: {
                 action: JSON.stringify('createQuestionList'),
                 questionListParams: JSON.stringify(questionListData)
+            }
+        };
+    }
+    return null;
+}
+
+function addKinToTreatment()
+{
+    if ($("#addKinToTreatmentForm")[0].checkValidity())
+    {
+        var kinID = $("#selectKin option:selected").val();
+        var treatmentID = $("#selectKin").data("treatmentid");
+
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('addKinToTreatment'),
+                kinID: JSON.stringify(kinID),
+                treatmentID: JSON.stringify(treatmentID)
             }
         };
     }

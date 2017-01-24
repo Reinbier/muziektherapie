@@ -11,9 +11,10 @@ if (isset($_GET["logout"]))
 // get the page variables
 $page = (isset($_GET["page"]) ? $_GET["page"] : null);
 $subpage = (isset($_GET["subpage"]) ? $_GET["subpage"] : null);
+$subsubpage = (isset($_GET["subsubpage"]) ? $_GET["subsubpage"] : null);
 
 // create new instance of Page class
-$cPage = new Page($page, $subpage);
+$cPage = new Page($page, $subpage, $subsubpage);
 ?>
 <!DOCTYPE html>
 <html>
