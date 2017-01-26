@@ -11,13 +11,17 @@ class Page extends DAL
     private $page;
     private $subpage;
     private $subsubpage;
+    private $subsubsubpage;
+    private $subsubsubsubpage;
 
-    public function __construct($page = "home", $subpage = null, $subsubpage = null)
+    public function __construct($page = "home", $subpage = null, $subsubpage = null, $subsubsubpage = null, $subsubsubsubpage = null)
     {
         parent::__construct();
         $this->page = $page;
         $this->subpage = $subpage;
         $this->subsubpage = $subsubpage;
+        $this->subsubsubpage = $subsubsubpage;
+        $this->subsubsubsubpage = $subsubsubsubpage;
     }
     
     public function display()
@@ -68,9 +72,9 @@ class Page extends DAL
         switch($this->page)
         {
             case "nieuw":
-                return $cLayoutTherapist->getNewPage($this->subpage);
+                return $cLayoutTherapist->getNewPage($this->subpage, $this->subsubpage, $this->subsubsubpage);
             case "overzicht":
-                return $cLayoutTherapist->getOverviewPage($this->subpage, $this->subsubpage);
+                return $cLayoutTherapist->getOverviewPage($this->subpage, $this->subsubpage, $this->subsubsubpage, $this->subsubsubsubpage);
             case "home":
             default:
                 return $cLayoutTherapist->getHomePage();
@@ -85,8 +89,8 @@ class Page extends DAL
             case 'voortgang':
                 return $cLayoutClient->getProgressPage();
 
-            case 'vragenlijst':
-                return $cLayoutClient->getQuestionListPage($this->subpage);
+            case 'vragenlijsten':
+                return $cLayoutClient->getQuestionListPage($this->subpage, $this->subsubpage);
 
             case "home":
             default:
@@ -97,7 +101,7 @@ class Page extends DAL
     public function buildLayoutNaaste($userID)
     {
         $cLayoutNaaste = new LayoutNaaste($userID);
-        return $cLayoutNaaste->getQuestionListPage($this->subpage);
+        return $cLayoutNaaste->getQuestionListPage($this->subpage, $this->subsubpage);
     }
     
     public function buildLayoutLogin($error = false)

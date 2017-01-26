@@ -70,12 +70,13 @@ Class Question extends DAL
         return $result;
     }
 
-    public function getSelectedAnswer($questionID, $userID)
+    public function getSelectedAnswer($measurementID, $questionID, $userID)
     {
         $query = "SELECT *
                   FROM ANSWER
                   WHERE QuestionID = :questionID
-                  AND UserID = :userID";
+                  AND UserID = :userID
+                  AND MeasurementID = :mmid";
 
         $result = $this->query($query, array(
             ":questionID" => array(
@@ -84,6 +85,10 @@ Class Question extends DAL
             ),
             ":userID" => array(
                 $userID,
+                PDO::PARAM_INT,
+            ),
+            ":mmid" => array(
+                $measurementID,
                 PDO::PARAM_INT,
             )
         ), "one");
@@ -91,12 +96,13 @@ Class Question extends DAL
         return $result;
     }
 
-    public function getAnswer($questionID, $userID)
+    public function getAnswer($measurementID, $questionID, $userID)
     {
         $query = "SELECT *
                   FROM ANSWER
                   WHERE QuestionID = :questionID
-                  AND UserID = :userID";
+                  AND UserID = :userID
+                  AND MeasurementID = :mmid";
 
         $result = $this->query($query, array(
             ":questionID" => array(
@@ -105,6 +111,10 @@ Class Question extends DAL
             ),
             ":userID" => array(
                 $userID,
+                PDO::PARAM_INT,
+            ),
+            ":mmid" => array(
+                $measurementID,
                 PDO::PARAM_INT,
             )
         ), "one");

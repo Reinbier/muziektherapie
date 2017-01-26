@@ -71,6 +71,41 @@ if (isset($_REQUEST["action"]))
                 )
             );
     }
+    else if ($action === "fillInQuestionList")
+    {
+        // get parameters
+        $questionListParams = json_decode($_REQUEST["questionListParams"], true);
+        
+        $cAnswer = new Answer();
+        $measurementID = $questionListParams["measurementID"];
+        $userID = $questionListParams["userID"];
+        
+        // loop through each question with its answer
+        foreach($questionListParams["questions"] as $question)
+        {
+            if(is_null($question["rowid"]))
+            {
+                // het gaat om een nieuw antwoord
+                $cAnswer->insertAnswer($measurementID, $userID, $question["questionID"], $question["column"], $question["answer"]);
+            }
+            else
+            {
+                // het bestaande antwoord moet worden geupdate!
+                $cAnswer->updateAnswer($question["rowid"], $question["column"], $question["answer"]);
+            }
+        }
+        
+        echo json_encode(
+                array(
+                    "title" => "Succes!", 
+                    "text" => "Uw antwoorden zijn opgeslagen!", 
+                    "buttons" => "<button type='button' class='btn btn-default' data-dismiss='modal' data-reload='yes'>Close</button>",
+                    "lastQuery" => $cAnswer->getLastQuery(),
+                    "lastResult" => $cAnswer->getLastQueryResult(),
+                    "lastMysqlError" => $cAnswer->getLastMysqlError()
+                )
+            );
+    }
 }
 else
 {

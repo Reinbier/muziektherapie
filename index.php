@@ -8,13 +8,15 @@ if (isset($_GET["logout"]))
     unset($_SESSION["userID"]);
 }
 
-// get the page variables
+// get the page variables, the subpages can stand for multiple parameters, these will be clear in the scripts where they will be send to
 $page = (isset($_GET["page"]) ? $_GET["page"] : null);
 $subpage = (isset($_GET["subpage"]) ? $_GET["subpage"] : null);
 $subsubpage = (isset($_GET["subsubpage"]) ? $_GET["subsubpage"] : null);
+$subsubsubpage = (isset($_GET["subsubsubpage"]) ? $_GET["subsubsubpage"] : null);
+$subsubsubsubpage = (isset($_GET["subsubsubsubpage"]) ? $_GET["subsubsubsubpage"] : null);
 
 // create new instance of Page class
-$cPage = new Page($page, $subpage, $subsubpage);
+$cPage = new Page($page, $subpage, $subsubpage, $subsubsubpage, $subsubsubsubpage);
 ?>
 <!DOCTYPE html>
 <html>

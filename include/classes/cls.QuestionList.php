@@ -81,7 +81,7 @@ class QuestionList extends DAL
         return $result;
     }
 
-    public function isComplete($questionlistID, $userID)
+    public function isComplete($measurementID, $questionlistID, $userID)
     {
         $complete = true;
         $questions = $this->getQuestions($questionlistID);
@@ -92,14 +92,14 @@ class QuestionList extends DAL
             {
                 if ($cQuestion->isMultipleChoice($question->QuestionID))
                 {
-                    if (is_null($cQuestion->getSelectedAnswer($question->QuestionID, $userID)))
+                    if (is_null($cQuestion->getSelectedAnswer($measurementID, $question->QuestionID, $userID)))
                     {
                         $complete = false;
                     }
                 }
                 else
                 {
-                    if (is_null($cQuestion->getAnswer($question->QuestionID, $userID)))
+                    if (is_null($cQuestion->getAnswer($measurementID, $question->QuestionID, $userID)))
                     {
                         $complete = false;
                     }
@@ -114,7 +114,7 @@ class QuestionList extends DAL
         return $complete;
     }
 
-    public function getCompletionDate($questionListID, $userID)
+    public function getCompletionDate($measurementID, $questionListID, $userID)
     {
         // get al questions
         $questions = $this->getQuestions($questionListID);
@@ -128,11 +128,11 @@ class QuestionList extends DAL
             {
                 if ($cQuestion->isMultipleChoice($question->QuestionID))
                 {
-                    $answer = $cQuestion->getSelectedAnswer($question->QuestionID, $userID);
+                    $answer = $cQuestion->getSelectedAnswer($measurementID, $question->QuestionID, $userID);
                 }
                 else
                 {
-                    $answer = $cQuestion->getAnswer($question->QuestionID, $userID);
+                    $answer = $cQuestion->getAnswer($measurementID, $question->QuestionID, $userID);
                 }
                 // add date of answered to array
                 $aDates[] = $answer->Date;
@@ -179,9 +179,9 @@ class QuestionList extends DAL
                         $measurementID = $measurement->MeasurementID;
                         $questionlistID = $measurement->QuestionlistID;
 
-                        if ($this->isComplete($questionlistID, $userID))
+                        if ($this->isComplete($measurementID, $questionlistID, $userID))
                         {
-                            $dateQLComplete = $this->getCompletionDate($questionlistID, $userID);
+                            $dateQLComplete = $this->getCompletionDate($measurementID, $questionlistID, $userID);
                             $questionlistName = $this->getQuestionListNameByID($questionlistID);
                             $measurementName = $measurement->Name;
                             $points = $cMeasurement->getPointsByUserID($measurementID, $userID);
@@ -205,9 +205,9 @@ class QuestionList extends DAL
 
             // sort by a defined function
             usort($aLogs, function($a1, $a2) {
-                $v1 = strtotime($a1['date']);
-                $v2 = strtotime($a2['date']);
-                return $v1 - $v2; // $v2 - $v1 to reverse direction
+                $v1 = $a1['date'];
+                $v2 = $a2['date'];
+                return $v2 - $v1; // $v2 - $v1 to reverse direction
             });
             
             // return the array
@@ -216,26 +216,29 @@ class QuestionList extends DAL
         return $return;
     }
 
-    public function checkTreatment($userID, $questionListID)
+    public function checkTreatment($userID, $questionListID, $measurementID)
     {
         $sql = "SELECT *
                 FROM TREATMENT a, TREATMENT_USER b, MEASUREMENT c
                 WHERE a.TreatmentID = c.TreatmentID
                 AND a.TreatmentID = b.TreatmentID
                 AND b.UserID = :userID
-                AND c.QuestionListID = :qlID";
+                AND c.QuestionListID = :qlID
+                AND c.MeasurementID = :mmID";
 
         $result = $this->query($sql, array(
             ":userID" => array(
                 $userID,
                 PDO::PARAM_INT
             ),
-            "qlID" => array(
+            ":qlID" => array(
                 $questionListID,
                 PDO::PARAM_INT
-            )
-                )
-        );
+            ),
+            ":mmID" => array(
+                $measurementID,
+                PDO::PARAM_INT
+            )), "one");
 
         return $result;
     }

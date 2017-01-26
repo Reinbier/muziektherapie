@@ -126,6 +126,25 @@ Class Answer extends DAL
         ));
     }
 
-}
+    public function insertAnswer($measurementID, $userID, $questionID, $column, $answer)
+    {
+        return $this->insert("ANSWER", array(
+            "MeasurementID" => $measurementID,
+            "UserID" => $userID,
+            "QuestionID" => $questionID,
+            $column => $answer
+        ));
+    }
 
-?>
+    public function updateAnswer($answerID, $column, $answer)
+    {
+        $sql = "UPDATE ANSWER
+                SET " . $column . " = :answer
+                WHERE AnswerID = :answerid";
+        return $this->query($sql, array(
+            ":answer" => array($answer, PDO::PARAM_STR),
+            ":answerid" => array($answerID, PDO::PARAM_INT)
+        ));
+    }
+
+}

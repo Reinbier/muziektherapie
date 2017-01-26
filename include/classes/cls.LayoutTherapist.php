@@ -43,7 +43,6 @@ class LayoutTherapist extends Layout
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Nieuw <span class="caret"></span></a>
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="/nieuw/behandeling/">Behandeling</a></li>
-                                    <li><a href="/nieuw/meting/">Meting</a></li>
                                     <li><a href="/nieuw/vragenlijst/">Vragenlijst</a></li>
                                     <li class="divider"></li>
                                     <li><a href="/nieuw/client/">Client</a></li>
@@ -73,7 +72,7 @@ class LayoutTherapist extends Layout
         return $return;
     }
 
-    private function buildPage($content = "No content found..", $sidebar = true)
+    private function buildPage($content = "Geen invulling voor deze pagina..", $sidebar = true)
     {
         $breadcrumbs = $this->getBreadcrumbs();
 
@@ -88,7 +87,7 @@ class LayoutTherapist extends Layout
                 <div class="row">
 
                     <div class="col-md-3">
-                        ' . $this->getLeftSideBar() . '
+                        ' . $this->getLeftSideBar($sidebar) . '
                     </div>
 
                     <div class="col-md-9">
@@ -120,20 +119,34 @@ class LayoutTherapist extends Layout
         return $this->getHeader() . parent::getContent($return) . $this->getFooter();
     }
 
-    private function getLeftSideBar()
+    private function getLeftSideBar($value)
     {
+        if ($value === "vragenlijst")
+        {
+            $buttons = '
+                <p>
+                    <a href="/nieuw/vragenlijst/" class="btn btn-success">Nieuwe vragenlijst</a>
+                </p>
+            ';
+        }
+        else
+        {
+            $buttons = '
+                <p>
+                    <a href="/nieuw/behandeling/" class="btn btn-warning">Nieuwe behandeling</a>
+                </p>
+                <p>
+                    <a href="/nieuw/client/" class="btn btn-success">Nieuwe client</a>
+                </p>
+            ';
+        }
         return '
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Meteen naar:</h3>
+                    <h3 class="panel-title">Snel naar:</h3>
                 </div>
                 <div class="panel-body">
-                    <p>
-                        <a href="/nieuw/behandeling/" class="btn btn-warning">Nieuwe behandeling</a>
-                    </p>
-                    <p>
-                        <a href="/nieuw/meting/" class="btn btn-success">Nieuwe meting</a>
-                    </p>
+                    ' . $buttons . '
                 </div>
             </div>
         ';
@@ -152,8 +165,14 @@ class LayoutTherapist extends Layout
         if (!is_null($registries))
         {
             $message = '<ul class="list-group">';
+            // set a limit for the amount of lines showed to the user
+            $limit = 10;
             foreach ($registries as $log)
             {
+                if ($limit == 0)
+                { // when limit reaches 0, break this loop
+                    break;
+                }
                 $message .= "
                     <li class='list-group-item'>
                         <span class='badge'>Aantal punten: " . $log["points"] . "</span>
@@ -163,6 +182,8 @@ class LayoutTherapist extends Layout
                         <a href='/overzicht/behandelingen/" . $log["TMT_ID"] . "/'>" . $log["TMT_Name"] . "</a> op 
                         <span class='text-info'>" . NederlandseDatumTijd($log["date"]) . "</span>
                     </li>";
+                // decrement limit
+                $limit--;
             }
             $message .= '</ul>';
         }
@@ -174,7 +195,7 @@ class LayoutTherapist extends Layout
         $content = '
             <div class="well">
             
-                <h3>Meldingen</h3>
+                <h1>Meldingen</h1>
                 ' . $message . '
             
             </div>
@@ -183,14 +204,14 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content);
     }
 
-    public function getNewPage($subpage = null)
+    public function getNewPage($subpage = null, $subsubpage = null, $subsubsubpage = null)
     {
         switch ($subpage)
         {
             case "behandeling":
                 return $this->getNewTreatmentPage();
             case "meting":
-                return $this->getNewMeasurementPage();
+                return $this->getNewMeasurementPage($subsubpage, $subsubsubpage);
             case "vragenlijst":
                 return $this->getNewQuestionListPage();
             case "client":
@@ -205,12 +226,117 @@ class LayoutTherapist extends Layout
         }
     }
 
+    private function getNewTreatmentPage()
+    {
+        // set page vars
+        $this->page = "nieuw";
+        $this->title = "Nieuwe behandeling";
+        $this->breadcrumbs = array("Home" => "home", "Nieuwe behandeling" => "");
+
+        $cTreatment = new Treatment();
+        $cUser = new User();
+        $allClients = $cUser->getAllClients();
+
+        $content = '
+            <div class="well">
+                <form class="form-horizontal" id="createTreatmentForm" onsubmit="return false">
+                    <fieldset>
+                        <legend>Nieuwe behandeling aanmaken</legend>
+                        <div class="form-group">
+                            <label for="treatmentName" class="col-lg-2 control-label">Naam</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" id="treatmentName" placeholder="Naam van behandeling" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="select" class="col-lg-2 control-label">Selecteer client</label>
+                            <div class="col-lg-10">
+                                <select class="form-control" id="selectClient" name="selectClient" data-therapist="' . $this->userID . '" required>
+                                    <option value="">Selecteer een client..</option>
+                                    <optgroup label="Beschikbare clienten">
+        ';
+        foreach ($allClients as $client)
+        {
+            if (is_null($cTreatment->getActiveTreatmentByUserID($client->UserID)))
+            {
+                $content .= '<option value="' . $client->UserID . '">' . $client->Name . '</option>';
+            }
+        }
+        $content .= '
+                                    </optgroup>
+                                </select>
+                                <span class="help-block">Clienten die al in een actieve behandeling zitten zijn niet zichtbaar in deze lijst.</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-lg-10 col-lg-offset-2 text-right">
+                                <button type="submit" class="btn btn-primary" id="button-createTreatment" name="button-createTreatment">Aanmaken</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        ';
+
+        return $this->buildPage($content);
+    }
+
+    private function getNewMeasurementPage($treatmentID, $qlID = null)
+    {
+        // set page vars
+        $this->page = "nieuw";
+        $this->title = "Nieuwe meting";
+        $this->breadcrumbs = array("Home" => "home", "Nieuwe meting" => "");
+
+        $cQuestionList = new QuestionList();
+        $allQuestionLists = $cQuestionList->getAllQuestionLists();
+
+        $content = '
+            <div class="well">
+                <form class="form-horizontal" id="createMeasurementForm" onsubmit="return false">
+                    <fieldset>
+                        <legend>Nieuwe meting toevoegen</legend>
+                        <div class="form-group">
+                            <label for="measurementName" class="col-lg-3 control-label">Naam</label>
+                            <div class="col-lg-9">
+                                <input type="text" class="form-control" id="measurementName" placeholder="Naam van meting" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="select" class="col-lg-3 control-label">Selecteer vragenlijst</label>
+                            <div class="col-lg-9">
+                                <select class="form-control" id="selectQlist" name="selectQlist" data-treatmentid="' . $treatmentID . '" required>
+                                    <option value="">Selecteer een vragenlijst..</option>
+                                    <optgroup label="Vragenlijsten">
+        ';
+        foreach ($allQuestionLists as $qlist)
+        {
+            $content .= '<option value="' . $qlist->QuestionlistID . '" ' . ($qlist->QuestionlistID == $qlID ? "selected" : "") . '>' . $qlist->Name . '</option>';
+        }
+        $content .= '
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-lg-9 col-lg-offset-3 text-right">
+                                <button type="submit" class="btn btn-primary" id="button-createMeasurement" name="button-createMeasurement">Aanmaken</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        ';
+
+        return $this->buildPage($content);
+    }
+
     private function getNewQuestionListPage()
     {
         // set page vars
         $this->page = "nieuw";
         $this->title = "Vragenlijst aanmaken";
-        $this->breadcrumbs = array("Home", "Nieuwe vragenlijst");
+        $this->breadcrumbs = array("Home" => "home", "Nieuwe vragenlijst" => "");
 
         $cForm = new FormInputs();
         $cForm->addLegend("Vragenlijst details");
@@ -289,7 +415,7 @@ class LayoutTherapist extends Layout
         // set page vars
         $this->page = "nieuw";
         $this->title = "Client aanmaken";
-        $this->breadcrumbs = array("Home", "Nieuwe client");
+        $this->breadcrumbs = array("Home" => "home", "Nieuwe client" => "");
 
         // create new object for the formInputs
         $cForm = new FormInputs();
@@ -392,7 +518,7 @@ class LayoutTherapist extends Layout
         // set page vars
         $this->page = "nieuw";
         $this->title = ucfirst($roleName) . " aanmaken";
-        $this->breadcrumbs = array("Home", "Nieuwe " . $roleName);
+        $this->breadcrumbs = array("Home" => "home", "Nieuwe " . $roleName => "");
 
         $cForm = new FormInputs();
         $cForm->addTextInput("Naam", "Name", true);
@@ -426,7 +552,7 @@ class LayoutTherapist extends Layout
         // set page vars
         $this->page = "nieuw";
         $this->title = "Therapeut aanmaken";
-        $this->breadcrumbs = array("Home", "Nieuwe therapeut");
+        $this->breadcrumbs = array("Home" => "home", "Nieuwe therapeut" => "");
 
         $cForm = new FormInputs();
         $cForm->addTextInput("Naam", "Name", true);
@@ -454,14 +580,14 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content, false);
     }
 
-    public function getOverviewPage($subpage = null, $subsubpage = null)
+    public function getOverviewPage($subpage = null, $subsubpage = null, $subsubsubpage = null, $subsubsubsubpage = null)
     {
         switch ($subpage)
         {
             case "behandelingen":
                 return $this->getOverviewTreatmentsPage($subsubpage);
             case "metingen":
-                return $this->getOverviewMeasurementsPage($subsubpage);
+                return $this->getOverviewMeasurementsPage($subsubpage, $subsubsubpage, $subsubsubsubpage);
             case "vragenlijsten":
                 return $this->getOverviewQuestionListsPage($subsubpage);
             case "gebruikers":
@@ -471,7 +597,7 @@ class LayoutTherapist extends Layout
         }
     }
 
-    private function getOverviewTreatmentsPage($treatmentID)
+    private function getOverviewTreatmentsPage($treatmentID = null)
     {
         if (!is_null($treatmentID))
         {
@@ -482,7 +608,7 @@ class LayoutTherapist extends Layout
             // set page vars
             $this->page = "overzicht";
             $this->title = "Behandelingen overzicht";
-            $this->breadcrumbs = array("Overzicht", "Behandelingen");
+            $this->breadcrumbs = array("Overzicht" => "overzicht", "Behandelingen" => "");
 
             $content = '
                 <div class="well">
@@ -493,6 +619,7 @@ class LayoutTherapist extends Layout
                                 <th>Client</th>
                                 <th>Aantal metingen</th>
                                 <th>Overige deelnemers</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
             ';
@@ -511,8 +638,9 @@ class LayoutTherapist extends Layout
                     // assemble data we need
                     $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
                     $kinPeople = $cTreatment->getKinbyTreatmentID($treatmentID);
-                    $client = $cTreatment->getClientIDbyTreatmentID($treatmentID);
-                    $clientData = $cUser->getUserById($client->UserID);
+                    $clientID = $cTreatment->getClientIDbyTreatmentID($treatmentID);
+                    $clientData = $cUser->getUserById($clientID);
+                    $active = $cTreatment->isActive($treatmentID);
                     // create string of kin people to put in the table
                     $sKin = "";
                     if (is_null($kinPeople))
@@ -531,9 +659,10 @@ class LayoutTherapist extends Layout
                     $content .= "
                             <tr>
                                 <td><a href='/overzicht/behandelingen/" . $treatmentID . "/' class='btn btn-link'>" . $treatmentData->Name . "</a></td>
-                                <td><a href='/overzicht/gebruikers/" . $client->UserID . "/' class='btn btn-link'>" . $clientData->Name . "</a></td>
+                                <td><a href='/overzicht/gebruikers/" . $clientID . "/' class='btn btn-link'>" . $clientData->Name . "</a></td>
                                 <td>" . count($measurements) . "</td>
                                 <td>" . $sKin . "</td>
+                                <td>" . ($active ? "Lopend" : "Afgerond") . "</td>
                             </tr>
                     ";
                 }
@@ -552,129 +681,418 @@ class LayoutTherapist extends Layout
     {
         $cTreatment = new Treatment();
         $treatmentData = $cTreatment->getTreatmentByTreatmentID($treatmentID);
-        // set page vars
-        $this->page = "overzicht";
-        $this->title = $treatmentData->Name;
-        $this->breadcrumbs = array("Overzicht", "Behandelingen", $treatmentData->Name);
 
-        $cMeasurement = new Measurement();
-        $cUser = new User();
-        $client = $cTreatment->getClientIDbyTreatmentID($treatmentID);
-        $clientID = $client->UserID;
-        $clientData = $cUser->getUserById($clientID);
-
-
-        $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
-
-        if (!is_null($measurements))
+        // the treatment doesnt exist, return to the overview (no parameters given)
+        if (is_null($treatmentData))
         {
-            $output = '<div class="list-group col-md-12">';
+            return $this->getOverviewTreatmentsPage();
+        }
+        else
+        {
+            // set page vars
+            $this->page = "overzicht";
+            $this->title = $treatmentData->Name;
+            $this->breadcrumbs = array("Overzicht" => "overzicht", "Behandelingen" => "behandelingen", $treatmentData->Name => "");
 
             $cQuestionlist = new QuestionList();
-            foreach ($measurements as $measurement)
-            {
-                $questionListID = $cQuestionlist->getQuestionListIDByMeasurementID($measurement->MeasurementID);
+            $cMeasurement = new Measurement();
+            $cUser = new User();
 
-                $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $clientID);
-                $output .= '
-                    <a href="/overzicht/metingen/' . $measurement->MeasurementID . '" class="list-group-item">
-                        <h4 class="list-group-item-heading">' . $measurement->Name . '</h4>
-                        <p class="list-group-item-text"><span class="label label-warning">Gemiddelde aantal punten: ' . $points . '</span></p>
-                    </a>
+            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
+            $treatmentUsers = $cTreatment->getAllUsersInTreatment($treatmentID);
+
+            $active = $cTreatment->isActive($treatmentID);
+
+            if (!is_null($measurements))
+            {
+                $output = '<div class="list-group col-md-12">';
+
+                foreach ($measurements as $measurement)
+                {
+                    // get average points
+                    $avgPoints = $cMeasurement->getAveragePointsByMeasurementID($measurement->MeasurementID);
+
+                    // check what to say about the completion of this measurement
+                    $completeLabel = '<span class="label label-success">Volledig afgerond</span>';
+                    $usersToComplete = '';
+                    foreach ($treatmentUsers as $user)
+                    {
+                        $userData = $cUser->getUserById($user->UserID);
+                        // determine if the therapist has competed this questionlist or not
+                        if (!$cQuestionlist->isComplete($measurement->MeasurementID, $cQuestionlist->getQuestionListIDByMeasurementID($measurement->MeasurementID), $user->UserID))
+                        {
+                            $usersToComplete .= ($usersToComplete == '' ? $userData->Name : ', ' . $userData->Name);
+                        }
+                    }
+                    if ($usersToComplete != '')
+                    {
+                        $completeLabel = '<span class="label label-warning">Nog in te vullen door: ' . $usersToComplete . '</span>';
+                    }
+
+                    $output .= '
+                        <a href="/overzicht/metingen/' . $measurement->MeasurementID . '/' . $measurement->QuestionlistID . '/" class="list-group-item">
+                            <h4 class="list-group-item-heading">' . $measurement->Name . '</h4>
+                            <p class="list-group-item-text">
+                                <span class="label label-primary">Gemiddeld: ' . $avgPoints . ' punten</span>
+                                ' . $completeLabel . '
+                            </p>
+                        </a>
+                    ';
+                }
+                $output .= '</div>';
+            }
+            else
+            {
+                $output = "<div class='col-md-12'><p>Geen metingen gevonden voor deze behandeling</p></div>";
+            }
+
+            $allKin = $cUser->getAllUsers(array("Naaste", "Professional"));
+            // store kin in options array
+            $aKinOptions = array();
+            foreach ($allKin as $kin)
+            {
+                if (!$cTreatment->userInTreatment($kin->UserID, $treatmentID))
+                {
+                    // check if this user not already is in this treatment
+                    $aKinOptions[] = '<option value=' . $kin->UserID . '>' . $kin->Name . '</option>';
+                }
+            }
+
+            $finishedAlert = "";
+            if (!$active)
+            {
+                $finishedAlert = '
+                    <div class="alert alert-dismissible alert-info">
+                        Deze behandeling werd gestart op <strong>' . NederlandseDatumTijd($treatmentData->Start) . '</strong> en afgerond op <strong>' . NederlandseDatumTijd($treatmentData->End) . '</strong>.
+                    </div>
                 ';
             }
-            $output .= '</div>';
-        }
-        else
-        {
-            $output = "<div class='col-md-12'>Geen metingen gevonden voor deze behandeling</div>";
-        }
-
-        $allKin = $cUser->getAllUsers(array("Naaste", "Professional"));
-        // store kin in options array
-        $aKinOptions = array();
-        foreach ($allKin as $kin)
-        {
-            if (!$cTreatment->userInTreatment($kin->UserID, $treatmentID))
-            {
-                // check if this user not already is in this treatment
-                $aKinOptions[] = '<option value=' . $kin->UserID . '>' . $kin->Name . '</option>';
-            }
-        }
-
-        $content = '
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Metingen binnen deze behandeling</h3>
-                        </div>
-                        <div class="panel-body">
-                            ' . $output . '
-                            <div class="col-md-12">
-                                <a href="#" class="btn btn-success">Nieuwe meting</a>
+            // show measurements within this treatment
+            $content = $finishedAlert . '
+                <div class="row">
+                    <div class="col-md-' . ($active ? '6' : '4') . '">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Metingen binnen deze behandeling</h3>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="panel panel-warning">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Naasten toevoegen aan behandeling</h3>
-                        </div>
-                        <div class="panel-body">
-        ';
-        if (count($aKinOptions) > 0)
-        {
-            $content .= '
-                            <form class="form-horizontal" id="addKinToTreatmentForm" onsubmit="return false">
-                                <fieldset>
-                                    <div class="form-group">
-                                        <div class="col-md-9">
-                                            <select class="form-control" name="selectKin" id="selectKin" data-treatmentid="' . $treatmentID . '">
-            ';
-            foreach ($aKinOptions as $option)
+                            <div class="panel-body">
+                                ' . $output;
+            // add new measurement button
+            if ($active)
             {
-                // check if this user not already is in this treatment
-                $content .= $option;
-            }
-            $content .= '
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <button type="submit" class="btn btn-success" id="button-addKinToTreatment">Toevoegen</button>
-                                        </div>
+                $content .= '
+                                <div class="col-md-12">
+                                    <div class="btn-group">
+                                        <a href="/nieuw/meting/' . $treatmentID . '/" class="btn btn-success">Nieuwe meting</a>
+                                        <a href="#" class="btn btn-success dropdown-toggle tooltip-toggle" data-toggle="dropdown" aria-expanded="false" data-placement="right" title="" data-original-title="Selecteer een vragenlijst"><span class="caret"></span></a>
+                                        <ul class="dropdown-menu">
+            ';
+                $allQuestionLists = $cQuestionlist->getAllQuestionLists();
+                foreach ($allQuestionLists as $qlist)
+                {
+                    $content .= '<li><a href="/nieuw/meting/' . $treatmentID . '/' . $qlist->QuestionlistID . '">' . $qlist->Name . '</a></li>';
+                }
+                $content .= '
+                                        </ul>
                                     </div>
-                                </fieldset>
-                            </form>
+                                </div>
             ';
-        }
-        else
-        {
-            $content .= '<p class="text-muted">Geen naasten beschikbaar..</p>';
-        }
-        $content .= '
+            }
+            $content .= '
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="panel panel-info">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Globale voortgang</h3>
+            ';
+            if ($active)
+            {
+                $content .= '
+                    <div class="col-md-6">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Naasten toevoegen aan behandeling</h3>
+                            </div>
+                            <div class="panel-body">
+            ';
+                if (count($aKinOptions) > 0)
+                {
+                    $content .= '
+                                <form class="form-horizontal" id="addKinToTreatmentForm" onsubmit="return false">
+                                    <fieldset>
+                                        <div class="form-group">
+                                            <div class="col-md-9">
+                                                <select class="form-control" name="selectKin" id="selectKin" data-treatmentid="' . $treatmentID . '">
+                ';
+                    foreach ($aKinOptions as $option)
+                    {
+                        // check if this user not already is in this treatment
+                        $content .= $option;
+                    }
+                    $content .= '
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button type="submit" class="btn btn-success" id="button-addKinToTreatment">Toevoegen</button>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                ';
+                }
+                else
+                {
+                    $content .= '<p class="text-muted">Geen naasten beschikbaar..</p>';
+                }
+                $content .= '
+                            </div>
                         </div>
-                        <div class="panel-body">
-                            <div id="progressChartOverview" data-userid="' . $clientID . '" style="height: 40rem;">
+                    </div>
 
+                    <div class="col-md-6">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Acties</h3>
+                            </div>
+                            <div class="panel-body">
+                                <p class="text-muted">Deze behandeling is aangemaakt op ' . NederlandseDatumTijd($treatmentData->Start) . '</p>
+                                <a href="javascript:void(0);" class="btn btn-success actionTreatment" data-action="finish" data-treatmentid="' . $treatmentID . '">Behandeling afronden</a>
+                                <a href="javascript:void(0);" class="btn btn-danger actionTreatment" data-action="delete" data-treatmentid="' . $treatmentID . '">Verwijder deze behandeling</a>
+                            </div>
+                        </div>
+                    </div>
+                ';
+            }
+            $content .= '
+                    <div class="col-md-' . ($active ? '12' : '8') . '">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Globale voortgang</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div id="progressChart" data-treatmentid="' . $treatmentID . '" data-role="therapist" style="height: 40rem;">
+
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        ';
+            ';
 
-        return $this->buildPage($content, false);
+            return $this->buildPage($content, false);
+        }
+    }
+
+    private function getOverviewMeasurementsPage($measurementID = null, $questionListID = null, $userID = null)
+    {
+        $this->page = "overzicht";
+        $this->title = "Metingen overzicht";
+        $this->breadcrumbs = array("Overzicht" => "overzicht", "Metingen" => "");
+
+        // no measurementid given, we do not know the treatment so go to the overview
+        if (is_null($measurementID))
+        {
+            return $this->getOverviewTreatmentsPage();
+        }
+        else if (is_null($questionListID)) // no questionlist given but we have a measurement id
+        {
+            return $this->getOverviewMeasurementsDetailsPage($measurementID, $questionListID);
+        }
+        else // both measurementid AND questionlistid are NOT NULL, show the questionlist to fill in for this user
+        {
+            return $this->getOverviewMeasurementsQuestionListDetailsPage($measurementID, $questionListID, $userID);
+        }
+        // default: send the user back to treatments
+        return $this->getOverviewTreatmentsPage();
+    }
+
+    private function getOverviewMeasurementsDetailsPage($measurementID, $questionListID)
+    {
+        $cTreatment = new Treatment();
+        $cQuestionList = new QuestionList();
+        $cMeasurement = new Measurement();
+        $cUser = new User();
+
+        $measurement = $cMeasurement->getMeasurement($measurementID);
+        $measurementName = $measurement->Name;
+
+        $treatmentID = $measurement->TreatmentID;
+        $treatment = $cTreatment->getTreatmentByTreatmentID($treatmentID);
+        $treatmentName = $treatment->Name;
+
+        $this->page = "overzicht";
+        $this->title = $treatmentName . " - " . $measurementName;
+        $this->breadcrumbs = array("Overzicht" => "overzicht", "Behandelingen" => "behandelingen", $treatmentName => $treatmentID, $measurementName => "");
+        $treatmentCheck = $cQuestionList->checkTreatment($this->userID, $questionListID, $measurementID);
+
+        // check if the treatment exists for this user (therapist)
+        if (is_null($treatmentCheck))
+        {
+            return $this->getOverviewTreatmentsPage(); // return to the overview
+        }
+        else // it exists!
+        {
+            $output = "";
+
+            // set vars
+            $allUsers = $cTreatment->getAllUsersInTreatment($treatmentID);
+            $questionlistID = $measurement->QuestionlistID;
+
+            foreach ($allUsers as $user)
+            {
+                $userID = $user->UserID;
+                $userData = $cUser->getUserById($userID);
+                // check if the user has completed his/her questionlist
+                if ($cQuestionList->isComplete($measurementID, $questionlistID, $userID))
+                {
+                    $labelComplete = '<div class="label label-success">Volledig ingevuld</div>';
+                }
+                else
+                {
+                    $labelComplete = '<div class="label label-warning">Nog niet volledig ingevuld</div>';
+                }
+
+                $points = $cMeasurement->getPointsByUserID($measurementID, $userID);
+
+                $output .= '
+                    <div class="col-md-4">
+                        <div class="well">
+                            ' . $labelComplete . '
+                            <h2> ' . $userData->Name . '</h2>
+                            <p class="lead">Punten: ' . ($cQuestionList->isComplete($measurementID, $questionlistID, $userID) ? $points : "n.t.b.") . '</p>
+                            <a href="/overzicht/metingen/' . $measurementID . '/' . $questionlistID . '/' . $userID . '/" class="btn btn-primary">Naar vragenlijst</a>
+                         </div>
+                    </div>
+                ';
+            }
+
+
+
+            $content = '
+                <div class="row">
+                    <div class="col-md-12">
+                        ' . $output . ' 
+                    </div>
+                </div>
+            ';
+
+            return $this->buildPage($content, false);
+        }
+    }
+
+    private function getOverviewMeasurementsQuestionListDetailsPage($measurementID, $questionListID, $userID)
+    {
+        $cQuestionList = new QuestionList();
+        $questionListName = $cQuestionList->getQuestionListNameByID($questionListID);
+        $cMeasurement = new Measurement();
+        $measurement = $cMeasurement->getMeasurement($measurementID);
+        $cTreatment = new Treatment();
+        $treatment = $cTreatment->getTreatmentByTreatmentID($measurement->TreatmentID);
+        $treatmentName = $treatment->Name;
+
+        $this->page = "overzicht";
+        $this->title = "Vragenlijst invullen - " . $questionListName;
+        $this->breadcrumbs = array("Overzicht" => "overzicht", "Metingen" => "metingen", $treatmentName . " - " . $measurement->Name => $measurementID . "/" . $questionListID, $questionListName => "");
+        $treatmentCheck = $cQuestionList->checkTreatment($userID, $questionListID, $measurementID);
+
+        if (is_null($treatmentCheck))
+        {
+            return $this->getOverviewMeasurementsDetailsPage($measurementID, $questionListID); // return to the overview of this measurement
+        }
+        else
+        {
+            $formbody = "Geen vragen gevonden";
+            $cQuestion = new Question();
+            $cForminputs = new FormInputs();
+            $cForminputs->setLabelWidth(1);
+            $cForminputs->setInputWidth(11);
+            $cForminputs->disableMandatoryNotification();
+
+            $questions = $cQuestionList->getQuestions($questionListID);
+            $disabled = "";
+            $submitButton = true;
+
+            // first check if the therapist id is the same as that of this questionList
+            $labelComplete = "";
+            if ($this->userID !== $userID)
+            {
+                // disabled the questionlist
+                $disabled = "disabled";
+                $submitButton = false;
+                // set the label
+                $labelComplete = '<p><span class="label label-warning">Deze vragenlijst is van een andere gebruiker</span></p>';
+            }
+            if (!is_null($questions))
+            {
+                if ($cQuestionList->isComplete($measurementID, $questionListID, $userID))
+                {
+                    $disabled = "disabled";
+                    // set the label
+                    $labelComplete = '<p><span class="label label-success">Deze vragenlijst is afgerond</span></p>';
+                }
+                foreach ($questions as $question)
+                {
+                    if ($cQuestion->isMultipleChoice($question->QuestionID))
+                    {
+                        $pos_answers = $cQuestion->getPossibleAnswers($question->QuestionID);
+                        if (!empty($pos_answers))
+                        {
+                            $selectedAnswer = $cQuestion->getSelectedAnswer($measurementID, $question->QuestionID, $userID);
+                            $selected = "";
+                            $selectedID = null;
+                            if (!is_null($selectedAnswer))
+                            {
+                                $selected = $selectedAnswer->PossibleAnswerID;
+                                $selectedID = $selectedAnswer->AnswerID;
+                            }
+                            $aAnswers = array();
+                            foreach ($pos_answers as $pos_answer)
+                            {
+                                $aAnswers[$pos_answer->PossibleID] = $pos_answer->Answer;
+                            }
+                            $cForminputs->addMultipleChoiceQuestion($question->QuestionID, $question->Question, $aAnswers, $selected, $selectedID, $disabled);
+                        }
+                    }
+                    else
+                    {
+                        $answer = $cQuestion->getAnswer($measurementID, $question->QuestionID, $userID);
+                        $selected = "";
+                        $selectedID = null;
+                        if (!is_null($answer))
+                        {
+                            $selected = $answer->Answer;
+                            $selectedID = $answer->AnswerID;
+                        }
+                        $cForminputs->addOpenQuestion($question->QuestionID, $question->Question, $selected, $selectedID, $disabled);
+                    }
+                }
+                if (!($cQuestionList->isComplete($measurementID, $questionListID, $userID)) && $submitButton)
+                {
+                    $cForminputs->addButton("fillInQuestionList", "Opslaan");
+                }
+
+                $formbody = $cForminputs->createFormBody();
+            }
+
+            $cUser = new User();
+            $userData = $cUser->getUserById($userID);
+            $userName = $userData->Name;
+
+            $content = '<div class="row">
+                <div class="col-md-12 lead">Gebruiker: ' . $userName . '</div>
+                <div class="col-md-12">
+                    <div class="well">
+                        ' . $labelComplete . '
+                        <form class="form-horizontal" id="fillInQuestionListForm" data-userid=' . $userID . ' data-measurementid="' . $measurementID . '" onsubmit="return false;">
+                            <fieldset>
+                            ' . $formbody . '
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            ';
+
+            return $this->buildPage($content, false);
+        }
     }
 
     private function getOverviewUsersPage($userID)
@@ -688,7 +1106,7 @@ class LayoutTherapist extends Layout
             // set page vars
             $this->page = "overzicht";
             $this->title = "Gebruikers overzicht";
-            $this->breadcrumbs = array("Overzicht", "Gebruikers");
+            $this->breadcrumbs = array("Overzicht" => "overzicht", "Gebruikers" => "");
 
             $content = '
                 <div class="well">
@@ -743,7 +1161,7 @@ class LayoutTherapist extends Layout
         // set page vars
         $this->page = "overzicht";
         $this->title = $userDetails->Name;
-        $this->breadcrumbs = array("Overzicht", "Gebruikers", $userDetails->Name);
+        $this->breadcrumbs = array("Overzicht" => "overzicht", "Gebruikers" => "gebruikers", $userDetails->Name => "");
 
         $cTreatment = new Treatment();
         $cMeasurement = new Measurement();
@@ -753,7 +1171,8 @@ class LayoutTherapist extends Layout
 
         if (!is_null($treatment))
         {
-            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+            $treatmentID = $treatment->TreatmentID;
+            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
 
             if ($measurements)
             {
@@ -766,7 +1185,7 @@ class LayoutTherapist extends Layout
                     $output .= "
                         <div class='col-md-6'>
                             <div class='well text-center'>
-                                <p class='points'>" . (!$cQuestionlist->isComplete($questionListID, $userID) ? "n.t.b." : $points) . "</p>
+                                <p class='points'>" . (!$cQuestionlist->isComplete($measurement->MeasurementID, $questionListID, $userID) ? "n.t.b." : $points) . "</p>
                                 " . $measurement->Name . "
                             </div>
                         </div> ";
@@ -776,6 +1195,7 @@ class LayoutTherapist extends Layout
         else
         {
             $output = "<div class='col-md-12'>Geen metingen gevonden voor deze behandeling</div>";
+            $treatmentID = "0";
         }
 
         $content = '
@@ -786,7 +1206,7 @@ class LayoutTherapist extends Layout
                 </div>
             </div>
             <div class="col-md-8">
-                <div id="progressChartOverview" data-userid="' . $userID . '" style="height: 40rem;">
+                <div id="progressChart" data-treatmentid="' . $treatmentID . '" data-role="client" style="height: 40rem;">
 
                 </div>
             </div>
@@ -806,7 +1226,7 @@ class LayoutTherapist extends Layout
             // set page vars
             $this->page = "overzicht";
             $this->title = "Vragenlijst overzicht";
-            $this->breadcrumbs = array("Overzicht", "Vragenlijsten");
+            $this->breadcrumbs = array("Overzicht" => "overzicht", "Vragenlijsten" => "");
 
             $content = '
                 <div class="well">
@@ -841,7 +1261,7 @@ class LayoutTherapist extends Layout
                 </div>
             ';
 
-            return $this->buildPage($content, false);
+            return $this->buildPage($content, "vragenlijst");
         }
     }
 
@@ -851,7 +1271,7 @@ class LayoutTherapist extends Layout
         $questionListName = $cQuestionlist->getQuestionListNameByID($questionListID);
         $this->page = "overzicht";
         $this->title = $questionListName;
-        $this->breadcrumbs = array("Overzicht", "Vragenlijsten", $questionListName);
+        $this->breadcrumbs = array("Overzicht" => "overzicht", "Vragenlijsten" => "vragenlijsten", $questionListName => "");
 
         $formbody = "Geen vragen gevonden";
         $cQuestion = new Question();
@@ -875,12 +1295,12 @@ class LayoutTherapist extends Layout
                         {
                             $aAnswers[$pos_answer->PossibleID] = $pos_answer->Answer;
                         }
-                        $cForminputs->addMultipleChoiceQuestion($question->QuestionID, $question->Question, $aAnswers);
+                        $cForminputs->addMultipleChoiceQuestion($question->QuestionID, $question->Question, $aAnswers, null, null, "disabled");
                     }
                 }
                 else
                 {
-                    $cForminputs->addOpenQuestion($question->Question);
+                    $cForminputs->addOpenQuestion($question->QuestionID, $question->Question, null, null, "disabled");
                 }
             }
             $formbody = $cForminputs->createFormBody();

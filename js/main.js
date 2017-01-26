@@ -19,22 +19,26 @@ $(document).ready(function () {
         allowInputToggle: true
     });
     
+    // used on buttons within the modal-popup, when they have the 'data-reload' attribute assigned, then reload the page.
     $(document).on("click", "button", function() {
         if($(this)[0].hasAttribute("data-reload"))
         {
             location.reload();
         }
     });
+    
+    // enable functionality of bootstrap tooltips
+    $(function(){
+        $('[data-toggle=tooltip], .tooltip-toggle').tooltip();
+    });
 
+    // draw the graph when the element for the progressChart exist on the page
     if ($('#progressChart').length)
     {
-        drawGraph(0);
-    }
-    else if ($('#progressChartOverview').length)
-    {
-        drawGraph($("#progressChartOverview").data("userid"));
+        drawGraph($("#progressChart").data("treatmentid"), $("#progressChart").data("role"));
     }
     
+    // assign functionality to the datatables
     if ($(".dataTable").length)
     {
         $(".dataTable").DataTable({
@@ -56,7 +60,15 @@ $(document).ready(function () {
              "iDisplayLength": 10,
              "order": [[0, "desc"]]
          });
-     }
+    }
+    
+    $(document).on("click", ".actionTreatment", function() {
+        var treatmentID = $(this).data('treatmentid');
+        var action = $(this).data('action');
+        var nl_word = (action == "finish" ? "afronden" : "be&euml;ndigen");
+        
+        displayPopup("Bevestiging nodig", '<p>Weet u zeker dat u deze behandeling wilt ' + nl_word + '?</p>', '<button type="button" class="btn btn-success" onclick="actionTreatment(\''+action+'\',\''+treatmentID+'\')" data-dismiss="modal">Ja, doorgaan</button><button type="button" class="btn btn-default" data-dismiss="modal">Nee, ga terug</button>');
+    });
 
     // catch every button-click
     $(document).on('click', 'button[type="submit"]', function (e) {
@@ -81,8 +93,17 @@ $(document).ready(function () {
                 case 'button-createQuestionlist':
                     parameters = createQuestionList();
                     break;
+                case 'button-createTreatment':
+                    parameters = createTreatment();
+                    break;
+                case 'button-createMeasurement':
+                    parameters = createMeasurement();
+                    break;
                 case 'button-addKinToTreatment':
                     parameters = addKinToTreatment();
+                    break;
+                case 'button-fillInQuestionList':
+                    parameters = fillInQuestionList();
                     break;
             }
 
@@ -98,10 +119,9 @@ $(document).ready(function () {
                 request.done(function (msg) {
                     displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
                     $(".btnReset").trigger("click");
-                    
                 });
                 request.fail(function (jqXHR, textStatus) {
-                    displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+                    displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>', '<button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>');
                 });
             }
         }
@@ -109,6 +129,26 @@ $(document).ready(function () {
 
 });
 
+function actionTreatment(todo, treatmentID)
+{
+    // process request via AJAX
+    var request = $.ajax({
+        url: '/include/ajax/therapist.php',
+        type: "POST",
+        data: {
+            action: JSON.stringify("actionTreatment"),
+            todo: todo,
+            treatmentID: treatmentID
+        },
+        dataType: "json"
+    });
+    request.done(function (msg) {
+        displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
+    });
+    request.fail(function (jqXHR, textStatus) {
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E503)</p>', '<button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>');
+    });
+}
 
 function createTherapist()
 {
@@ -180,6 +220,67 @@ function createQuestionList()
     return null;
 }
 
+function fillInQuestionList()
+{
+    if ($("#fillInQuestionListForm")[0].checkValidity())
+    {
+        var questionListData = getQuestionListFillInData();
+        var userID = $("#fillInQuestionListForm").data("userid");
+
+        return {
+            url: '/include/ajax/questionlist.php',
+            data: {
+                action: JSON.stringify('fillInQuestionList'),
+                questionListParams: JSON.stringify(questionListData),
+                userID: JSON.stringify(userID)
+            }
+        };
+    }
+    return null;
+}
+
+function createTreatment()
+{
+    if ($("#createTreatmentForm")[0].checkValidity())
+    {
+        var name = $("#treatmentName").val();
+        var client = $("#selectClient option:selected").val();
+        var therapist = $("#selectClient").data("therapist");
+        
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('createTreatment'),
+                name: JSON.stringify(name),
+                client: JSON.stringify(client),
+                therapist: JSON.stringify(therapist)
+            }
+        };
+    }
+    return null;
+}
+
+function createMeasurement()
+{
+    if ($("#createMeasurementForm")[0].checkValidity())
+    {
+        var name = $("#measurementName").val();
+        var questionlistID = $("#selectQlist option:selected").val();
+        var treatmentID = $("#selectQlist").data("treatmentid");
+        
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('createMeasurement'),
+                name: JSON.stringify(name),
+                questionlistID: JSON.stringify(questionlistID),
+                treatmentID: JSON.stringify(treatmentID)
+            }
+        };
+    }
+    return null;
+}
+
 function addKinToTreatment()
 {
     if ($("#addKinToTreatmentForm")[0].checkValidity())
@@ -238,21 +339,14 @@ function getAllInputData(formID)
     return inputParams;
 }
 
-function drawGraph(userid)
+function drawGraph(treatmentid, role)
 {
-    var chart = "progressChart";
-    var script = "client";
-    if(userid > 0)
-    {
-        chart += "Overview";
-        script = "therapist";
-    }
-    
     var request = $.ajax({
-        url: "/include/ajax/" + script + ".php",
+        url: "/include/ajax/" + role + ".php",
         type: "POST",
         data: {action: JSON.stringify("drawGraph"),
-                userid: JSON.stringify(userid)},
+                treatmentid: JSON.stringify(treatmentid),
+                role: JSON.stringify(role)},
         dataType: "json"
     });
     request.done(function (msg) {
@@ -270,13 +364,13 @@ function drawGraph(userid)
             });
             
             new Morris.Line({
-                element: chart,
+                element: "progressChart",
                 data: msg.result,
                 xkey: 'measurement',
                 parseTime: false,
                 ykeys: $yKeys,
                 labels: $yKeys,
-                padding: 50
+                padding: 75
             });
         }
         else
@@ -289,6 +383,6 @@ function drawGraph(userid)
         }
     });
     request.fail(function (jqXHR, textStatus) {
-        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E502)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E502)</p>', '<button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>');
     });
 }

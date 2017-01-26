@@ -13,16 +13,17 @@
  */
 function NederlandseDatumTijd($input)
 {
-    return date("d-m-Y H:i:s", $input);
+    // if it is numeric, it is already a timestring
+    return date("d-m-Y H:i:s", (!is_numeric($input) ? strtotime($input) : $input));
 }
 
 function convertRolesToStringForQuery($roles)
 {
-    foreach($roles as &$role)
+    foreach ($roles as &$role)
     {
         $role = "'" . $role . "'";
     }
-    $roles = implode(", ", $roles);
-    
-    return $roles;
+    $newRoles = implode(", ", $roles);
+
+    return $newRoles;
 }

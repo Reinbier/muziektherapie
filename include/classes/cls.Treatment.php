@@ -15,7 +15,7 @@ class Treatment extends DAL
     /**
      * Creates a new treatment
      * @param  String $name name of the treatment
-     * @return int        uniquw ID of the inserted treatment.
+     * @return int        unique ID of the inserted treatment.
      */
     public function createTreatment($name)
     {
@@ -26,6 +26,26 @@ class Treatment extends DAL
             ":name" => array($name, PDO::PARAM_STR)));
 
         return $result;
+    }
+    
+    public function finishTreatment($treatmentID)
+    {
+        $sql = "UPDATE TREATMENT
+                SET Active = 0, 
+                    End = NOW()
+                WHERE TreatmentID = :tmt_id";
+        return $this->query($sql, array(
+            ":tmt_id" => array($treatmentID, PDO::PARAM_INT)
+        ));
+    }
+    
+    public function deleteTreatment($treatmentID)
+    {
+        $sql = "DELETE FROM TREATMENT
+                WHERE TreatmentID = :tmt_id";
+        return $this->query($sql, array(
+            ":tmt_id" => array($treatmentID, PDO::PARAM_INT)
+        ));
     }
 
     /**
@@ -86,7 +106,42 @@ class Treatment extends DAL
 
         return $result;
     }
+    
+    /**
+     * Method to figure out whether this treatment is active or not
+     * 
+     * @param int $treatmentID
+     * @return boolean  returns null upon no result set found.
+     */
+    public function isActive($treatmentID)
+    {
+        $sql = "SELECT *
+                FROM TREATMENT
+                WHERE TreatmentID = :tmt_id";
 
+        $result = $this->query($sql, array(
+            ":tmt_id" => array($treatmentID, PDO::PARAM_INT)), "one");
+
+        if(is_null($result))
+        {
+            return null;
+        }
+        else if($result->Active == '0')
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    /**
+     * Get all measurements that belong to this treatmentID
+     * 
+     * @param int $treatmentId
+     * @return object
+     */
     public function getMeasurementsbyTreatmentID($treatmentId)
     {
         $sql = "SELECT *
@@ -101,13 +156,39 @@ class Treatment extends DAL
 
         return $result;
     }
+    
+    /**
+     * Get all users that are linked to this treatment
+     * 
+     * @param int $treatmentID
+     * @return object
+     */
+    public function getAllUsersInTreatment($treatmentID)
+    {
+        $sql = "SELECT UserID
+                FROM TREATMENT_USER
+                WHERE TreatmentID = :treatmentid";
 
+        $result = $this->query($sql, array(
+            ":treatmentid" => array(
+                $treatmentID,
+                PDO::PARAM_INT),
+        ));
+
+        return $result;
+    }
+
+    /**
+     * Get the id of the client that is part of this treatment
+     * 
+     * @param int $treatmentID
+     * @return type
+     */
     public function getClientIDbyTreatmentID($treatmentID)
     {
         $sql = "SELECT b.UserID
-                FROM MEASUREMENT a, TREATMENT_USER b, USER_ROLE c, ROLE d
-                WHERE a.TreatmentID = :treatmentid
-                AND a.TreatmentID = b.TreatmentID
+                FROM TREATMENT_USER b, USER_ROLE c, ROLE d
+                WHERE b.TreatmentID = :treatmentid
                 AND b.UserID = c.UserID
                 AND c.RoleID = d.RoleID
                 AND d.Role_name = 'Client'";
@@ -116,13 +197,41 @@ class Treatment extends DAL
             ":treatmentid" => array(
                 $treatmentID,
                 PDO::PARAM_INT),
-        ), "one");
+        ), "column");
 
         return $result;
     }
-    
-    
 
+    /**
+     * Get the id of the therapist that is part of this treatment
+     * 
+     * @param int $treatmentID
+     * @return type
+     */
+    public function getTherapistIDbyTreatmentID($treatmentID)
+    {
+        $sql = "SELECT b.UserID
+                FROM TREATMENT_USER b, USER_ROLE c, ROLE d
+                WHERE b.TreatmentID = :treatmentid
+                AND b.UserID = c.UserID
+                AND c.RoleID = d.RoleID
+                AND d.Role_name = 'Therapeut'";
+
+        $result = $this->query($sql, array(
+            ":treatmentid" => array(
+                $treatmentID,
+                PDO::PARAM_INT),
+        ), "column");
+
+        return $result;
+    }
+
+    /**
+     * Get the id's of the kin that is/are part of this treatment
+     * 
+     * @param int $treatmentID
+     * @return type
+     */
     public function getKinbyTreatmentID($treatmentID)
     {
         $sql = "SELECT b.UserID, d.Role_name
@@ -143,7 +252,14 @@ class Treatment extends DAL
         return $result;
     }
     
-    public function addKinToTreatment($userID, $treatmentID)
+    /**
+     * Link an existing user to a treatment
+     * 
+     * @param int $userID
+     * @param int $treatmentID
+     * @return type
+     */
+    public function addUserToTreatment($userID, $treatmentID)
     {
         $sql = "INSERT INTO TREATMENT_USER (TreatmentID, UserID)
                 VALUES (:treatmentid, :userid)";
@@ -153,6 +269,13 @@ class Treatment extends DAL
         ));
     }
     
+    /**
+     * Check if the given user is part of this treatment
+     * 
+     * @param int $userID
+     * @param int $treatmentID
+     * @return boolean
+     */
     public function userInTreatment($userID, $treatmentID)
     {
         $sql = "SELECT *
@@ -175,7 +298,14 @@ class Treatment extends DAL
         }
     }
 
-    public function drawGraph($userID, $roleName)
+    /**
+     * Get the points of the graph for the user(s) based on which user requested this method.
+     * 
+     * @param int $treatmentID  The treatment of which the graph is needed
+     * @param int $roleName     A therapist will get all of the lines for all of the users within this treatment, a client will only get his own line
+     * @return array
+     */
+    public function drawGraph($treatmentID, $roleName)
     {
         $cQuestionList = new QuestionList();
         $cUser = new User();
@@ -185,7 +315,7 @@ class Treatment extends DAL
 
         if ($roleName === 'Therapeut')
         {
-            $treatment = $cTreatment->getActiveTreatmentByUserID($userID);
+            $treatment = $cTreatment->getTreatmentByTreatmentID($treatmentID);
 
             if (!is_null($treatment))
             {
@@ -201,7 +331,7 @@ class Treatment extends DAL
                         $aUsers = array();
                         foreach ($users as $user)
                         {
-                            if ($cQuestionList->isComplete($measurement->QuestionlistID, $user->UserID))
+                            if ($cQuestionList->isComplete($measurement->MeasurementID, $measurement->QuestionlistID, $user->UserID))
                             {
                                 $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $user->UserID);
                                 if (is_null($points))
@@ -220,10 +350,11 @@ class Treatment extends DAL
         else
         {
             // get treatment
-            $treatment = $cTreatment->getActiveTreatmentByUserID($userID);
+            $treatment = $cTreatment->getTreatmentByTreatmentID($treatmentID);
             
             if (!is_null($treatment))
             {
+                $userID = $cTreatment->getClientIDbyTreatmentID($treatmentID);
                 $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
 
                 if ($measurements)
@@ -233,7 +364,7 @@ class Treatment extends DAL
                         $points = $cMeasurement->getPointsByUserID($measurement->MeasurementID, $userID);
                         $measurementName = $measurement->Name;
 
-                        if ($cQuestionList->isComplete($measurement->QuestionlistID, $userID))
+                        if ($cQuestionList->isComplete($measurement->MeasurementID, $measurement->QuestionlistID, $userID))
                         {
                             $aParams[] = array("measurement" => $measurementName, "points" => $points);
                         }

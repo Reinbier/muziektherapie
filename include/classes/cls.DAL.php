@@ -97,7 +97,7 @@ class DAL
      * @param String $count                     to determine whether to return multiple rows or just one, or the value of one column. Options are 'one' and 'multiple' and 'column'.
      * @return boolean|null|array|object        Returns a boolean if a SELECT- or SHOW-query succeeded, returns the inserted id of an INSERT-query, returns 'null' if no results were found. Based on the flag given, returns the result of the query.
      */
-    public function query($sql, $aParams = null, $count = "multiple", $flag = "object")
+    protected function query($sql, $aParams = null, $count = "multiple", $flag = "object")
     {
         // initialize 
         $pdo = $this->link;
@@ -330,7 +330,7 @@ class DAL
             }
             else // do not encrypt value
             {
-                $values .= ($values === "" ? ":" . $columnName : ", " . $columnName);
+                $values .= ($values === "" ? ":" . $columnName : ", :" . $columnName);
             }
             
             // add parameter to the array for PDO's bindParam
