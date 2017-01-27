@@ -3,6 +3,8 @@
 /**
  * @author: Reinier Gombert
  * @date: 5-dec-2016
+ * 
+ * This abstract class contains the defaults for the layouts for the different users
  */
 
 abstract class Layout extends DAL
@@ -16,9 +18,15 @@ abstract class Layout extends DAL
         $this->breadcrumbs = array();
     }
     
+    /**
+     * This method will return the breadcrumb trail
+     * 
+     * @return string
+     */
     protected function getBreadcrumbs()
     {
         $breadcrumbs = '';
+        // check if there are any 
         if(count($this->breadcrumbs) > 0)
         {
             $breadcrumbs = '
@@ -26,18 +34,20 @@ abstract class Layout extends DAL
                     <div class="col-md-12">
                         <ul class="breadcrumb">
             ';
-            $link = '/';
-            for($i = 0; $i < count($this->breadcrumbs); $i++)
+            $i = 1;
+            $path = "/";
+            foreach($this->breadcrumbs as $pageName => $link)
             {
-                $link .= strtolower($this->breadcrumbs[$i]) . '/';
-                if($i == (count($this->breadcrumbs) - 1))
+                $path .= $link . "/";
+                if($i == count($this->breadcrumbs))
                 {
-                    $breadcrumbs .= '<li class="active">' . $this->breadcrumbs[$i] . '</li>';
+                    $breadcrumbs .= '<li class="active">' . $pageName . '</li>';
                 }
                 else
                 {
-                    $breadcrumbs .= '<li><a href="' . $link . '">' . $this->breadcrumbs[$i] . '</a></li>';
+                    $breadcrumbs .= '<li><a href="' . $path . '">' . $pageName . '</a></li>';
                 }
+                $i++;
             }
             $breadcrumbs .= '
                         </ul>
@@ -49,28 +59,39 @@ abstract class Layout extends DAL
         return $breadcrumbs;
     }
     
+    /**
+     * Header
+     * 
+     * @return string
+     */
     public function getHeader()
     {
         return '<img class="img-responsive" src="/images/Weblogo.png" alt="Sonja Aalbers" />';
     }
     
+    /**
+     * Content of the page
+     * 
+     * @param type $content
+     * @return type
+     */
     public function getContent($content)
     {
         return '<div class="container-fluid">' . $content . '</div>';
     }
     
+    /**
+     * Footer
+     * 
+     * @return string
+     */
     public function getFooter()
     {
         return '
             <footer class="bd-footer text-muted">
                 <div class="container">
-                    <ul class="bd-footer-links">
-                        <li><a href="https://facebook.com">Facebook</a></li>
-                        <li><a href="https://twitter.com/">Twitter</a></li>
-                        <li><a href="https://plus.google.com/">Google+</a></li>
-                    </ul>
                     <p>Project Muziektherapie</p>
-                    <p>Copyright 2016. All rights reserved.</p>
+                    <p>Copyright 2017 &copy; All rights reserved.</p>
                 </div>
             </footer>
         ';

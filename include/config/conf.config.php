@@ -17,6 +17,8 @@ define('DB_PASS', "Mz_ht201");
 define('DB_NAME', "muziektherapie");
 // salt used for encryption
 define("SALT", "parore2016");
+define("DOMAIN", "http://muziektherapie.serverict.nl");
+define("EMAIL", "sonja@gmail.com");
 
 // log errors
 ini_set("log_errors", 'On');
@@ -48,9 +50,9 @@ function myAutoloader($className)
 spl_autoload_register('myAutoloader');
 
 // include functions
-//require_once($_SERVER['DOCUMENT_ROOT'] . "/include/functions/fnc.functions.php");
+require_once($_SERVER['DOCUMENT_ROOT'] . "/include/functions/fnc.functions.php");
 
 // include phpMailer
-//require_once($_SERVER['DOCUMENT_ROOT'] . "/phpmailer/PHPMailerAutoload.php");
+require_once($_SERVER['DOCUMENT_ROOT'] . "/phpmailer/PHPMailerAutoload.php");
 
 session_start();

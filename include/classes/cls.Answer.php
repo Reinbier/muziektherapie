@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Name: Ronald van der Weide
+ * Name: Ronald van der Weide, Reinier Gombert
  * Date: 24/11/2016
  */
 
@@ -14,9 +14,9 @@ Class Answer extends DAL
     }
 
     /**
-     * Method for retrieving question data
+     * Method for retrieving answer data
      * 
-     * @param int $questionID
+     * @param int $answerID
      * @return object
      */
     public function getAnswer($answerID)
@@ -30,90 +30,15 @@ Class Answer extends DAL
 
         return $result;
     }
-
-    public function possibleAnswer()
-    {
-        $sql = "INSERT INTO ANSWER (PossibleAnswerID, QuestionID,MeasurementID,UserID,Answer)
-                VALUES (:possibleanswer,:questionid,:measurementid,:userid,:answer)
-            ";
-        $possibleanswer = $_POST['possibleanswer'];
-        $questionid = $_POST['questionid'];
-        $measurementid = $_POST['measurementid'];
-        $userid = $_POST['userid'];
-        $answer = $_POST['answer'];
-
-        $insert = $this->query($sql, array(":possibleanswer" => array($possibleanswer, PDO::PARAM_INT, "multiiple"),
-            ":questionid" => array($questionid, PDO::PARAM_INT, "multiiple"),
-            ":measurementid" => array($measurementid, PDO::PARAM_INT, "multiiple"),
-            ":userid" => array($userid, PDO::PARAM_INT, "multiiple"),
-            ":answer" => array($answer, PDO::PARAM_STR, "multiiple")
-        ));
-        foreach ($insert as $answer)
-        {
-            $a = array(':possibleanswer' => $answer = [$possibleanswer],
-                ':questionid' => $answer = [$possibleanswer],
-                ':measurementid' => $answer[$measurementid],
-                ':userid' => $answer[$userid],
-                ':answer' => $answer[$answer]
-            );
-
-            if ($insert->execute($a))
-            {
-                // Query succeeded.
-                echo "succes";
-            }
-            else
-            {
-                // Query failed.
-                echo $insert->errorCode();
-            }
-        }
-    }
-
-    public function getPoints()
-    {
-        $sql = "SELECT Points
-                FROM POSSIBLE_ANSWER a, ANSWER b
-                WHERE a.PossibleAnswerID = b.PossibleAnswerID
-                AND a.PossibleAnswerID = :possibleanswerid
-                AND b.PossibleAnswerID = :possibleanswerid";
-        $result = $this->query($sql, array(
-            ":possibleanswerid" => array($this->answerID, PDO::PARAM_INT)
-        ));
-
-        if (!is_null($result))
-        {
-            return true;
-        }
-        return false;
-    }
-
-    public function checkAnswers($UserID, $measurementid)
-    {
-        $sql = "SELECT * 
-                FROM ANSWER
-                WHERE UserID = :userid
-                AND MeasurementID = :measurementid";
-
-        $answers = $this->query($sql, array(
-            ":userid" => array($UserID, PDO::PARAM_INT),
-            ":measurementid" => array($measurementid, PDO::PARAM_INT),
-                )
-        );
-
-        if ($answers)
-        {
-            foreach ($answers as $answer)
-            {
-                if (!$answer->PossibleAnswerID && !$answer->Answer)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
+    
+    /**
+     * Add multiple choise answer
+     * 
+     * @param int $questionID
+     * @param string $answer
+     * @param int $points
+     * @return type
+     */
     public function addPossibleAnswerToQuestion($questionID, $answer, $points)
     {
         $sqlInsertPossibleAnswer = "INSERT INTO POSSIBLE_ANSWER (QuestionID, Answer, Points)
@@ -126,6 +51,43 @@ Class Answer extends DAL
         ));
     }
 
-}
+    /**
+     * Inserts an answer based on the parameters
+     * 
+     * @param int $measurementID
+     * @param int $userID
+     * @param int $questionID
+     * @param string $column
+     * @param string|int $answer
+     * @return type
+     */
+    public function insertAnswer($measurementID, $userID, $questionID, $column, $answer)
+    {
+        return $this->insert("ANSWER", array(
+            "MeasurementID" => $measurementID,
+            "UserID" => $userID,
+            "QuestionID" => $questionID,
+            $column => $answer
+        ));
+    }
 
-?>
+    /**
+     * Updates an answer in the db
+     * 
+     * @param int $answerID
+     * @param string $column
+     * @param string|int $answer
+     * @return type
+     */
+    public function updateAnswer($answerID, $column, $answer)
+    {
+        $sql = "UPDATE ANSWER
+                SET " . $column . " = :answer
+                WHERE AnswerID = :answerid";
+        return $this->query($sql, array(
+            ":answer" => array($answer, PDO::PARAM_STR),
+            ":answerid" => array($answerID, PDO::PARAM_INT)
+        ));
+    }
+
+}

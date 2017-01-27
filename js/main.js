@@ -18,14 +18,43 @@ $(document).ready(function () {
         format: 'DD-MM-YYYY',
         allowInputToggle: true
     });
+    
+    // used on buttons within the modal-popup, when they have the 'data-reload' attribute assigned, then reload the page.
+    $(document).on("click", "button", function() {
+        if($(this)[0].hasAttribute("data-reload"))
+        {
+            location.reload();
+        }
+    });
+    
+    // enable functionality of bootstrap tooltips
+    $(function(){
+        $('[data-toggle=tooltip], .tooltip-toggle').tooltip();
+    });
 
+    // draw the graph when the element for the progressChart exist on the page
     if ($('#progressChart').length)
     {
-        drawGraph();
+        drawGraph($("#progressChart").data("treatmentid"), $("#progressChart").data("role"));
     }
     
+    // assign functionality to the datatables
     if ($(".dataTable").length)
     {
+        var sortColumn = 0;
+        var direction = "asc";
+        if($(".treatments-Datatable").length)
+        {
+            // treatments should be sorted by their status
+            sortColumn = 4;
+            direction = "desc";
+        }
+        else if($(".users-Datatable").length)
+        {
+            // users should be sorted by their role
+            sortColumn = 4;
+        }
+        
         $(".dataTable").DataTable({
              "sPaginationType": "simple_numbers",
              "oLanguage": {
@@ -43,9 +72,18 @@ $(document).ready(function () {
                  }
              },
              "iDisplayLength": 10,
-             "order": [[0, "desc"]]
+             "order": [[sortColumn, direction]]
          });
-     }
+    }
+    
+    // when the user wants to do something with a treatment
+    $(document).on("click", ".actionTreatment", function() {
+        var treatmentID = $(this).data('treatmentid');
+        var action = $(this).data('action');
+        var nl_word = (action == "finish" ? "afronden" : "be&euml;ndigen");
+        // give a confirmation popup to confirm the thing the user wanted to do
+        displayPopup("Bevestiging nodig", '<p>Weet u zeker dat u deze behandeling wilt ' + nl_word + '?</p>', '<button type="button" class="btn btn-success" onclick="actionTreatment(\''+action+'\',\''+treatmentID+'\')" data-dismiss="modal">Ja, doorgaan</button><button type="button" class="btn btn-default" data-dismiss="modal">Nee, ga terug</button>');
+    });
 
     // catch every button-click
     $(document).on('click', 'button[type="submit"]', function (e) {
@@ -56,6 +94,7 @@ $(document).ready(function () {
             // create initial array with vars
             var parameters = null;
 
+            // get parameters of the given form
             switch ($(this).attr('id'))
             {
                 case 'button-createTherapist':
@@ -64,11 +103,27 @@ $(document).ready(function () {
                 case 'button-createClient':
                     parameters = createClient();
                     break;
+                case 'button-createKin':
+                    parameters = createKin();
+                    break;
                 case 'button-createQuestionlist':
                     parameters = createQuestionList();
                     break;
+                case 'button-createTreatment':
+                    parameters = createTreatment();
+                    break;
+                case 'button-createMeasurement':
+                    parameters = createMeasurement();
+                    break;
+                case 'button-addKinToTreatment':
+                    parameters = addKinToTreatment();
+                    break;
+                case 'button-fillInQuestionList':
+                    parameters = fillInQuestionList();
+                    break;
             }
 
+            // if there are parameters, then start an AJAX call
             if (parameters !== null)
             {
                 // process request via AJAX
@@ -79,11 +134,12 @@ $(document).ready(function () {
                     dataType: "json"
                 });
                 request.done(function (msg) {
-                    displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
-                    $(".btnReset").trigger("click");
+                    displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons); // display popup with success or failure
+                    $(".btnReset").trigger("click"); // reset the form to its original state
                 });
                 request.fail(function (jqXHR, textStatus) {
-                    displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+                    // the AJAX request failed
+                    displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E501)</p>', '<button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>');
                 });
             }
         }
@@ -91,7 +147,39 @@ $(document).ready(function () {
 
 });
 
+/**
+ * Perform the action the user pressed on the treatment
+ * 
+ * @param {string} todo
+ * @param {int} treatmentID
+ * @returns {undefined}
+ */
+function actionTreatment(todo, treatmentID)
+{
+    // process request via AJAX
+    var request = $.ajax({
+        url: '/include/ajax/therapist.php',
+        type: "POST",
+        data: {
+            action: JSON.stringify("actionTreatment"),
+            todo: todo,
+            treatmentID: treatmentID
+        },
+        dataType: "json"
+    });
+    request.done(function (msg) {
+        displayPopup(msg.title, '<p>' + msg.text + '</p>', msg.buttons);
+    });
+    request.fail(function (jqXHR, textStatus) {
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E503)</p>', '<button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>');
+    });
+}
 
+/**
+ * Create a therapist
+ * 
+ * @returns {JSON}
+ */
 function createTherapist()
 {
     if ($("#createTherapistForm")[0].checkValidity())
@@ -109,6 +197,11 @@ function createTherapist()
     return null;
 }
 
+/**
+ * Create a client
+ * 
+ * @returns {JSON}
+ */
 function createClient()
 {
     if ($("#createClientForm")[0].checkValidity())
@@ -126,23 +219,159 @@ function createClient()
     return null;
 }
 
-function createQuestionList()
+/**
+ * Create a kin
+ * 
+ * @returns {JSON}
+ */
+function createKin()
 {
-    if ($("#createQuestionListForm")[0].checkValidity())
+    if ($("#createKinForm")[0].checkValidity())
     {
-        var questionListData = getAllInputData("createQuestionListForm");
-
+        var kinData = getAllInputData("createKinForm");
+        var roleName = $("#roleName").text();
+        
         return {
-            url: '/include/ajax/questionlist.php',
+            url: '/include/ajax/therapist.php',
             data: {
-                action: JSON.stringify('createQuestionList'),
-                therapistParams: JSON.stringify(questionListData)
+                action: JSON.stringify('createKin'),
+                kinParams: JSON.stringify(kinData),
+                roleName: JSON.stringify(roleName)
             }
         };
     }
     return null;
 }
 
+/**
+ * Create a questionlist
+ * 
+ * @returns {JSON}
+ */
+function createQuestionList()
+{
+    if ($("#createQuestionListForm")[0].checkValidity())
+    {
+        var questionListData = getQuestionListCreateData();
+
+        return {
+            url: '/include/ajax/questionlist.php',
+            data: {
+                action: JSON.stringify('createQuestionList'),
+                questionListParams: JSON.stringify(questionListData)
+            }
+        };
+    }
+    return null;
+}
+
+/**
+ * Update a questionlist with the answers given
+ * 
+ * @returns {JSON}
+ */
+function fillInQuestionList()
+{
+    if ($("#fillInQuestionListForm")[0].checkValidity())
+    {
+        var questionListData = getQuestionListFillInData();
+        var userID = $("#fillInQuestionListForm").data("userid");
+
+        return {
+            url: '/include/ajax/questionlist.php',
+            data: {
+                action: JSON.stringify('fillInQuestionList'),
+                questionListParams: JSON.stringify(questionListData),
+                userID: JSON.stringify(userID)
+            }
+        };
+    }
+    return null;
+}
+
+/**
+ * Create a treatment
+ * 
+ * @returns {JSON}
+ */
+function createTreatment()
+{
+    if ($("#createTreatmentForm")[0].checkValidity())
+    {
+        var name = $("#treatmentName").val();
+        var client = $("#selectClient option:selected").val();
+        var therapist = $("#selectClient").data("therapist");
+        
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('createTreatment'),
+                name: JSON.stringify(name),
+                client: JSON.stringify(client),
+                therapist: JSON.stringify(therapist)
+            }
+        };
+    }
+    return null;
+}
+
+/**
+ * Create a measurement
+ * 
+ * @returns {JSON}
+ */
+function createMeasurement()
+{
+    if ($("#createMeasurementForm")[0].checkValidity())
+    {
+        var name = $("#measurementName").val();
+        var questionlistID = $("#selectQlist option:selected").val();
+        var treatmentID = $("#selectQlist").data("treatmentid");
+        
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('createMeasurement'),
+                name: JSON.stringify(name),
+                questionlistID: JSON.stringify(questionlistID),
+                treatmentID: JSON.stringify(treatmentID)
+            }
+        };
+    }
+    return null;
+}
+
+/**
+ * Add a kin to a treatment
+ * 
+ * @returns {JSON}
+ */
+function addKinToTreatment()
+{
+    if ($("#addKinToTreatmentForm")[0].checkValidity())
+    {
+        var kinID = $("#selectKin option:selected").val();
+        var treatmentID = $("#selectKin").data("treatmentid");
+
+        return {
+            url: '/include/ajax/therapist.php',
+            data: {
+                action: JSON.stringify('addKinToTreatment'),
+                kinID: JSON.stringify(kinID),
+                treatmentID: JSON.stringify(treatmentID)
+            }
+        };
+    }
+    return null;
+}
+
+/**
+ * Displays a popup with its content provided by the parameters
+ * 
+ * @param {string} title
+ * @param {string} body
+ * @param {string} footer
+ */
 function displayPopup(title, body, footer)
 {
     // change the values of the title, body and footer
@@ -153,6 +382,11 @@ function displayPopup(title, body, footer)
     $('.modal').modal('toggle');
 }
 
+/**
+ * Get input values from a form
+ * 
+ * @returns {JSON}
+ */
 function getAllInputData(formID)
 {
     // create an empty erray for input parameters
@@ -182,29 +416,51 @@ function getAllInputData(formID)
     return inputParams;
 }
 
-function drawGraph()
+/**
+ * Plot a graph for a treatment via AJAX
+ *
+ * @param {int} treatmentid
+ * @param {string} role
+ */
+function drawGraph(treatmentid, role)
 {
+    // request the graph dots
     var request = $.ajax({
-        url: "/include/ajax/client.php",
+        url: "/include/ajax/" + role + ".php",
         type: "POST",
-        data: {action: JSON.stringify("drawGraph")},
+        data: {action: JSON.stringify("drawGraph"),
+                treatmentid: JSON.stringify(treatmentid),
+                role: JSON.stringify(role)},
         dataType: "json"
     });
     request.done(function (msg) {
+        // the graph has ben fetched
         if(msg.status == "ok")
         {
+            // first determine the set of keys
+            var params = msg.result[0];
+            
+            var $yKeys = [];
+            $.each(params, function(i, v){
+                if(i != "measurement")
+                {
+                    $yKeys.push(i);
+                }
+            });
+            // draw the graph on the screen with Morris.js
             new Morris.Line({
-                element: 'progressChart',
+                element: "progressChart",
                 data: msg.result,
                 xkey: 'measurement',
                 parseTime: false,
-                ykeys: ['points'],
-                labels: ['score'],
-                padding: 50,
+                ykeys: $yKeys,
+                labels: $yKeys,
+                padding: 75
             });
         }
         else
         {
+            // the chart could not be found
             $('#progressChart').html(
                 '<div class="alert alert-info">' +
                     msg.message +
@@ -213,6 +469,7 @@ function drawGraph()
         }
     });
     request.fail(function (jqXHR, textStatus) {
-        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E502)</p>' + textStatus, '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>');
+        // error in AJAX
+        displayPopup('Er is iets mis gegaan', '<p>De verbinding met de server is verbroken.. (E502)</p>', '<button type="button" class="btn btn-default" data-dismiss="modal">Sluiten</button>');
     });
 }

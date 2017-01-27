@@ -46,6 +46,9 @@ class FormInputs
         $this->wInput = $val;
     }
 
+    /**
+     * display message that there are mandatory fields
+     */
     public function disableMandatoryNotification()
     {
         $this->mandatoryNotification = false;
@@ -150,7 +153,7 @@ class FormInputs
      * @param array $aAnswers   Associative array in the format: AnswerID => Answer
      * @param int $optionSelected   The value of the answerID of the option to be pre-selected.
      */
-    public function addMultipleChoiceQuestion($question, $aAnswers, $optionSelected = null)
+    public function addMultipleChoiceQuestion($questionID, $question, $aAnswers, $optionSelected = null, $selectedID = null, $disabled = "")
     {
         $radios = '';
         $i = 1;
@@ -159,7 +162,7 @@ class FormInputs
             $radios .= '
                 <div class="radio">
                     <label>
-                        <input type="radio" name="radio-PossibleAnswerID" id="radio-PossibleAnswerID-' . $i++ . '" data-column="PossibleAnswerID" value="' . $answerID . '"  required ' . ($optionSelected == $answerID ? 'checked' : '') . '> ' . $val . '
+                        <input type="radio" name="radio-' . $questionID . '" id="radio-' . $questionID . '-' . $i++ . '" data-questionid="' . $questionID . '" data-column="PossibleAnswerID" value="' . $answerID . '" ' . (is_null($selectedID) ? '' : 'data-rowid="' . $selectedID . '"') . ' ' . ($optionSelected == $answerID ? 'checked' : '') . ' ' . $disabled . '> ' . $val . '
                     </label>
                 </div>
             ';
@@ -167,22 +170,37 @@ class FormInputs
 
         $this->aInputs[] = array(
             'name' => $question,
-            'tag' => "PossibleAnswerID",
+            'tag' => $questionID,
             'type' => 'multiple-choice',
             'text' => $radios
         );
     }
 
-    public function addOpenQuestion($question, $answer = "")
+    /**
+     * 
+     * @param type $questionID
+     * @param type $question
+     * @param type $answer
+     * @param type $selectedID
+     * @param type $disabled
+     */
+    public function addOpenQuestion($questionID, $question, $answer = "", $selectedID = null, $disabled = "")
     {
         $this->aInputs[] = array(
             'name' => $question,
-            'tag' => "Answer",
+            'tag' => $questionID,
             'type' => 'open-question',
-            'text' => '<input type="text" class="form-control" id="input-Answer" name="input-Answer" data-column="Answer" required value="' . $answer . '">'
+            'text' => '<input type="text" class="form-control tooltip-toggle" id="input-' . $questionID . '" data-questionid="' . $questionID . '" ' . (is_null($selectedID) ? '' : 'data-rowid="' . $selectedID . '"') . ' data-column="Answer" data-placement="bottom" title="" data-original-title="Als u het antwoord niet weet of niet van toepassing is vult u een \'-\' in" value="' . $answer . '" ' . $disabled . '>'
         );
     }
 
+    /**
+     * Add a submit button to the form
+     * 
+     * @param type $name
+     * @param type $text
+     * @param type $class
+     */
     public function addButton($name, $text = "Verzenden", $class = "primary")
     {
         $this->aInputs[] = array(
@@ -193,11 +211,21 @@ class FormInputs
         );
     }
 
+    /**
+     * Add a reset button to the form
+     * 
+     * @param type $text
+     */
     public function addResetButton($text = "Reset")
     {
         $this->btnReset = $text;
     }
 
+    /**
+     * Add a legend
+     * 
+     * @param type $text
+     */
     public function addLegend($text)
     {
         $this->aInputs[] = array(
@@ -208,6 +236,12 @@ class FormInputs
         );
     }
 
+    /**
+     * Add a help-block
+     * 
+     * @param type $tag
+     * @param type $text
+     */
     public function addHelpBlock($tag, $text)
     {
         $this->aHelpBlocks[$tag] = $text;
@@ -262,7 +296,7 @@ class FormInputs
             $return = '
                 <div class="form-group">
                     <label class="col-lg-' . $this->wLabel . ' control-label">' . $this->questionNumber++ . '.</label>
-                    <div class="col-lg-' . $this->wInput . '"><label class="control-label">' . $name . '</label>
+                    <div class="col-lg-' . $this->wInput . '"><label class="control-label ' . $type . '">' . $name . '</label>
                         ' . $text;
             // check for help-block for this input
             if (array_key_exists($tag, $this->aHelpBlocks))

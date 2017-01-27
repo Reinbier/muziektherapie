@@ -3,6 +3,8 @@
 /**
  * @author: Reinier Gombert
  * @date: 16-nov-2016
+ * 
+ * Handles the navigation throughout the website, based on the .htaccess
  */
 
 class Page extends DAL
@@ -10,17 +12,26 @@ class Page extends DAL
 
     private $page;
     private $subpage;
+    private $subsubpage;
+    private $subsubsubpage;
+    private $subsubsubsubpage;
 
-    public function __construct($page = "home", $subpage = null)
+    public function __construct($page = "home", $subpage = null, $subsubpage = null, $subsubsubpage = null, $subsubsubsubpage = null)
     {
         parent::__construct();
         $this->page = $page;
         $this->subpage = $subpage;
+        $this->subsubpage = $subsubpage;
+        $this->subsubsubpage = $subsubsubpage;
+        $this->subsubsubsubpage = $subsubsubsubpage;
     }
     
+    /**
+     * Displays the page
+     */
     public function display()
     {
-        if(isset($_SESSION["userID"]))
+        if(isset($_SESSION["userID"])) // user is logged in, show his/her page
         {
             $cUser = new User($_SESSION["userID"]);
             
@@ -28,12 +39,16 @@ class Page extends DAL
             {
                 echo $this->buildLayoutTherapist($_SESSION["userID"]);
             }
-            else
+            else if($cUser->isClient())
             {
                 echo $this->buildLayoutClient($_SESSION["userID"]);
             }
+            else
+            {
+                echo $this->buildLayoutNaaste($_SESSION["userID"]);
+            }
         }
-        else
+        else // login user if needed
         {
             if(isset($_POST["submitLogin"]))
             {
@@ -48,31 +63,51 @@ class Page extends DAL
                     echo $this->buildLayoutLogin("incorrect");
                 }
             }
+            else if(isset($_POST["submitPasswordForgot"])) // user wants to go to passowrd forgotten page
+            {
+                $cLogin = new Login($_POST["email"], null);
+                if($cLogin->checkEmailExists())
+                {
+                    echo $this->buildLayoutLogin("proceed", $_POST["email"]);
+                }
+                else
+                {
+                    echo $this->buildLayoutLogin("incorrect");
+                }
+            }
             else
             {
-                echo $this->buildLayoutLogin();
+                echo $this->buildLayoutLogin(); // just display login page
             }
         }
     }
     
+    /**
+     * Build the layout for the therapist based on subpages given
+     * @param type $userID
+     * @return type
+     */
     public function buildLayoutTherapist($userID)
     {
         $cLayoutTherapist = new LayoutTherapist($userID);
         
         switch($this->page)
         {
-            case "therapeut":
-                return $cLayoutTherapist->getTherapistPage($this->subpage);
-            case "client":
-                return $cLayoutTherapist->getClientPage($this->subpage);
-            case "vragenlijst":
-                return $cLayoutTherapist->getQuestionListPage($this->subpage);
+            case "nieuw":
+                return $cLayoutTherapist->getNewPage($this->subpage, $this->subsubpage, $this->subsubsubpage);
+            case "overzicht":
+                return $cLayoutTherapist->getOverviewPage($this->subpage, $this->subsubpage, $this->subsubsubpage, $this->subsubsubsubpage);
             case "home":
             default:
                 return $cLayoutTherapist->getHomePage();
         }
     }
     
+    /**
+     * Build the layout for the client based on subpages given
+     * @param type $userID
+     * @return type
+     */
     public function buildLayoutClient($userID)
     {
         $cLayoutClient = new LayoutClient($userID);
@@ -81,8 +116,8 @@ class Page extends DAL
             case 'voortgang':
                 return $cLayoutClient->getProgressPage();
 
-            case 'vragenlijst':
-                return $cLayoutClient->getQuestionListPage($this->subpage);
+            case 'vragenlijsten':
+                return $cLayoutClient->getQuestionListPage($this->subpage, $this->subsubpage);
 
             case "home":
             default:
@@ -90,12 +125,31 @@ class Page extends DAL
         }
     }
     
-    public function buildLayoutLogin($error = false)
+    /**
+     * Build the layout for the kin(Naaste) based on subpages given
+     * @param type $userID
+     * @return type
+     */
+    public function buildLayoutNaaste($userID)
+    {
+        $cLayoutNaaste = new LayoutNaaste($userID);
+        return $cLayoutNaaste->getQuestionListPage($this->subpage, $this->subsubpage);
+    }
+    
+    /**
+     * Build the layout for the login screen based on errors if given
+     * 
+     * @param type $error
+     * @param type $email
+     * @return type
+     */
+    public function buildLayoutLogin($error = false, $email = null)
     {
         $cLayoutLogin = new LayoutLogin();
         switch($this->page)
         {
-            case "home":
+            case "forgot-pass":
+                return $cLayoutLogin->getForgotPasswordPage($error, $email);
             default:
                 return $cLayoutLogin->getLoginPage($error);
         }

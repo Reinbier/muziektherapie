@@ -2,6 +2,9 @@ Options +FollowSymLinks
 RewriteEngine on
 RewriteBase /
 
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ index.php?page=$1&subpage=$2&subsubpage=$3&subsubsubpage=$4&subsubsubsubpage=$5
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ index.php?page=$1&subpage=$2&subsubpage=$3&subsubsubpage=$4
+RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ index.php?page=$1&subpage=$2&subsubpage=$3
 RewriteRule ^([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)/$ index.php?page=$1&subpage=$2
 RewriteRule ^([a-zA-Z0-9_-]+)/$ index.php?page=$1
 RewriteRule ^([a-zA-Z0-9_-]+)/$ index.php?page=$1&%{QUERY_STRING}

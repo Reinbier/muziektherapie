@@ -1,10 +1,10 @@
 html
 {
-	font-size: 62.5%;	
+    font-size: 62.5%;	
 }
 
 #test {
-	background-color: green;
+    background-color: green;
 }
 
 .blue-bg
@@ -14,11 +14,11 @@ html
 
 .points
 {
-	color: grey;
-	font-size: 5rem;
+    color: grey;
+    font-size: 5rem;
 }
 
-.qList-button
-{
-	float: right !important;
+.nopadding {
+    padding: 0 !important;
+    margin: 0 !important;
 }
