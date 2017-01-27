@@ -3,6 +3,8 @@
 /*
  * Name: Ronald van der Weide
  * Date: 24/11/2016
+ * 
+ * Will handle everything about a question
  */
 
 Class Question extends DAL
@@ -57,6 +59,12 @@ Class Question extends DAL
         }
     }
 
+    /**
+     * Get possible answers for a question
+     * 
+     * @param type $questionID
+     * @return type
+     */
     public function getPossibleAnswers($questionID)
     {
         $query = "SELECT *
@@ -70,6 +78,14 @@ Class Question extends DAL
         return $result;
     }
 
+    /*
+     * Get selected answer for a multiple choice question
+     * 
+     * @param type $measurementID
+     * @param type $questionID
+     * @param type $userID
+     * @return type
+     */
     public function getSelectedAnswer($measurementID, $questionID, $userID)
     {
         $query = "SELECT *
@@ -96,6 +112,14 @@ Class Question extends DAL
         return $result;
     }
 
+    /**
+     * Get answer for a open question
+     * 
+     * @param type $measurementID
+     * @param type $questionID
+     * @param type $userID
+     * @return type
+     */
     public function getAnswer($measurementID, $questionID, $userID)
     {
         $query = "SELECT *
@@ -122,6 +146,13 @@ Class Question extends DAL
         return $result;
     }
 
+    /**
+     * Add a new question to  a questionlist
+     * 
+     * @param type $question
+     * @param type $questionListID
+     * @return type
+     */
     public function addQuestion($question, $questionListID)
     {
         $sqlInsertQuestion = "INSERT INTO QUESTION (Question, QuestionlistID)

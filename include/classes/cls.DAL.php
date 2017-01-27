@@ -5,6 +5,8 @@
  * @date: 16-nov-2016
  * 
  * Data Access Layer
+ * 
+ * Will handle all connection from and to the database
  */
 class DAL
 {
@@ -15,6 +17,7 @@ class DAL
 
     public function __construct($server = DB_HOST, $userName = DB_USER, $password = DB_PASS, $db = DB_NAME)
     {
+        // set vars
         $this->server = $server;
         $this->userName = $userName;
         $this->password = $password;
@@ -27,10 +30,16 @@ class DAL
         $this->connection();
     }
 
+    /**
+     * This method will start the connection
+     * 
+     * @return null|PDO
+     */
     protected function connection()
     {
         try
         {
+            // connect to the database via PDO
             $this->link = new PDO("mysql:host=" . $this->server . ";dbname=" . $this->db . ";charset=utf8", $this->userName, $this->password);
             // set the PDO error mode to exception
             $this->link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -47,42 +56,70 @@ class DAL
         }
     }
 
+    /**
+     * Close the given connection
+     * 
+     * @param type $pdo
+     */
     protected function close(&$pdo)
     {
         $pdo = null;
     }
 
+    /**
+     * Gets the last query result
+     * @return string
+     */
     public function getLastQueryResult()
     {
         return $this->lastQueryResult;
     }
 
+    /**
+     * Gets the last mysql error that occured
+     * @return string
+     */
     public function getLastMysqlError()
     {
         return $this->lastMysqlError;
     }
 
+    /**
+     * Get last query executed
+     * @return string
+     */
     public function getLastQuery()
     {
         return $this->lastQuery;
     }
 
+    /**
+     * Opens a connection and returns it
+     * 
+     * @return PDO
+     */
     public function openConnection()
     {
         return $this->connection();
     }
 
-    public function closeConnection()
-    {
-        // do nothing
-    }
-
-    //xss mitigation functions
+    /**
+     * Cross-site scripting prevention
+     * 
+     * @param string $data
+     * @param string $encoding
+     * @return string
+     */
     public function xssafe($data, $encoding = 'UTF-8')
     {
         return htmlspecialchars($data, ENT_QUOTES | ENT_HTML401, $encoding);
     }
 
+    /**
+     * Print on screen a cross-site-scripting-secured variable
+     * 
+     * @param type $data
+     */
     public function xecho($data)
     {
         echo xssafe($data);
@@ -189,22 +226,17 @@ class DAL
             // so basically only the result of a SELECT- or SHOW- query
             return $res;
         }
-        catch (Error $t)
-        {
-            $this->lastMysqlError = $t->getMessage();
-            error_log("Error: " . $t->getMessage() . ". \n\nSQL: " . $sql . "\n");
-        }
-        catch (PDOException $e)
+        catch (PDOException $e) // catch exception PDO
         {
             $this->lastMysqlError = $e->getMessage();
             error_log("PDO-Exception: " . $e->getMessage() . ". \n\nSQL: " . $sql . "\n");
         }
-        catch (Exception $ex)
+        catch (Exception $ex) // catch other exceptions
         {
             $this->lastMysqlError = $ex->getMessage();
             error_log("PDO-Exception: " . $ex->getMessage() . ". \n\nSQL: " . $sql . "\n");
         }
-        // close the PDO
+        // close the connection
         $this->close($pdo);
         return false;
     }

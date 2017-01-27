@@ -1,7 +1,11 @@
 /* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Questionlist javascript file
+ * 
+ * @author  Reinier Gombert
+ * @date    12-december-2016
+ * 
+ * This script will handle all functionality concerning questionlist
+ * creation and manipulation and fill in.
  */
 
 
@@ -80,6 +84,12 @@ $(document).ready(function ()
     });
 });
 
+/**
+ * remove a question (element) from the page dynamically
+ * 
+ * @param {type} element
+ * @returns {undefined}
+ */
 function removeQuestion(element)
 {
     var $question = element.closest(".question");
@@ -102,6 +112,11 @@ function removeQuestion(element)
     changeNumberSequence($(".questions"), "question");
 }
 
+/**
+ * remove an answer (element) from the page dynamically
+ * @param {type} element
+ * @returns {undefined}
+ */
 function removeAnswer(element)
 {
     var $parentAnswers = element.closest(".answers");
@@ -118,6 +133,13 @@ function removeAnswer(element)
     changeNumberSequence($parentAnswers, "answer");
 }
 
+/**
+ * Change the numbering of questions
+ * 
+ * @param {type} parentDiv
+ * @param {type} type
+ * @returns {undefined}
+ */
 function changeNumberSequence(parentDiv, type)
 {
     var i = 1;
@@ -127,6 +149,11 @@ function changeNumberSequence(parentDiv, type)
     });
 }
 
+/**
+ * Get the data for when the questionlist needs to be created
+ * 
+ * @returns {getQuestionListCreateData.inputData}
+ */
 function getQuestionListCreateData()
 {
     $form = $("#createQuestionListForm");
@@ -173,6 +200,11 @@ function getQuestionListCreateData()
     return inputData;
 }
 
+/**
+ * Get the data for when the question list is filled in
+ * 
+ * @returns {getQuestionListFillInData.inputData}
+ */
 function getQuestionListFillInData()
 {
     $form = $("#fillInQuestionListForm");

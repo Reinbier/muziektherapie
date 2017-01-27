@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author: Patrick Pieper
+ * @author: Patrick Pieper, Reinier Gombert
  * @date: 06-12-2016
  */
 class Treatment extends DAL
@@ -28,6 +28,12 @@ class Treatment extends DAL
         return $result;
     }
     
+    /**
+     * finish a treatment
+     * 
+     * @param type $treatmentID
+     * @return type
+     */
     public function finishTreatment($treatmentID)
     {
         $sql = "UPDATE TREATMENT
@@ -39,6 +45,12 @@ class Treatment extends DAL
         ));
     }
     
+    /**
+     * Delete a treatment
+     * 
+     * @param type $treatmentID
+     * @return type
+     */
     public function deleteTreatment($treatmentID)
     {
         $sql = "DELETE FROM TREATMENT
@@ -65,6 +77,28 @@ class Treatment extends DAL
             ":userID" => array($userID, PDO::PARAM_INT))
         );
 
+        return $result;
+    }
+
+    /**
+     * Get all active treatments for a user.
+     * 
+     * @param  int $userID 	  The ID of the user which treatments we have to find.
+     * @return [type]         returns the treatments.
+     */
+    public function getActiveTreatmentsByUserID($userID)
+    {
+        $sql = "SELECT b.*
+                FROM TREATMENT_USER a, TREATMENT b
+                WHERE a.UserID = :userID
+                AND a.TreatmentID = b.TreatmentID
+                AND b.Active = 1
+                ORDER BY b.TreatmentID";
+
+        $result = $this->query($sql, array(
+            ":userID" => array($userID, PDO::PARAM_INT))
+        );
+        
         return $result;
     }
 
@@ -140,13 +174,15 @@ class Treatment extends DAL
      * Get all measurements that belong to this treatmentID
      * 
      * @param int $treatmentId
+     * @param String $direction The order in which the rows should be fetched. 'ASC' or 'DESC'. Default 'ASC'
      * @return object
      */
-    public function getMeasurementsbyTreatmentID($treatmentId)
+    public function getMeasurementsbyTreatmentID($treatmentId, $direction = "ASC")
     {
         $sql = "SELECT *
                 FROM MEASUREMENT
-                WHERE TreatmentID = :treatmentid";
+                WHERE TreatmentID = :treatmentid
+                ORDER BY MeasurementID " . $direction;
 
         $result = $this->query($sql, array(
             ":treatmentid" => array(

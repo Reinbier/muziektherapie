@@ -5,17 +5,25 @@
         <group>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/js/main.js</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.DAL.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/config/conf.config.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Question.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.LayoutNaaste.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/index.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/ajax/therapist.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.QuestionList.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.LayoutTherapist.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Measurement.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/ajax/questionlist.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/ajax/client.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Answer.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.LayoutLogin.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Layout.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Page.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.User.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.FormInputs.php</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Login.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/js/questionlist.js</file>
+            <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/functions/fnc.functions.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.Treatment.php</file>
             <file>file:/C:/Users/Reinier/Documents/muziektherapie/include/classes/cls.LayoutClient.php</file>
         </group>

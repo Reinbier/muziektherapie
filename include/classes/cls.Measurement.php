@@ -51,6 +51,12 @@ class Measurement extends DAL
         return $result;
     }
 
+    /**
+     * Gives a count of the total measurements within a treatment
+     * 
+     * @param type $treatmentID
+     * @return type
+     */
     public function getTotalMeasurementsByTreatmentID($treatmentID)
     {
         $sql = "SELECT COUNT(*)
@@ -63,6 +69,13 @@ class Measurement extends DAL
         return $result;
     }
 
+    /**
+     * Get points for a measurement for a user
+     * 
+     * @param type $measurementID
+     * @param type $userID
+     * @return type
+     */
     public function getPointsByUserID($measurementID, $userID)
     {
         $measurementID = (int) $measurementID;
@@ -84,6 +97,12 @@ class Measurement extends DAL
         return $result;
     }
     
+    /**
+     * Get average points for one measurement
+     * 
+     * @param type $measurementID
+     * @return type
+     */
     public function getAveragePointsByMeasurementID($measurementID)
     {
         $measurement = $this->getMeasurement($measurementID);

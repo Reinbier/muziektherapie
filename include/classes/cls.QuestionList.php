@@ -1,7 +1,10 @@
 <?php
 
 /**
+ * @author: Reinier Gombert
+ * @date: 06-12-2016
  * 
+ * Handles the questionlists
  */
 class QuestionList extends DAL
 {
@@ -48,6 +51,11 @@ class QuestionList extends DAL
         return $result;
     }
 
+    /**
+     * Get questionlistName by id
+     * @param type $questionlistID
+     * @return type
+     */
     public function getQuestionListNameByID($questionlistID)
     {
         $sql = "SELECT Name
@@ -61,6 +69,10 @@ class QuestionList extends DAL
         return $list;
     }
 
+    /**
+     * Get all questionlists
+     * @return type
+     */
     public function getAllQuestionLists()
     {
         $sql = "SELECT *
@@ -68,6 +80,11 @@ class QuestionList extends DAL
         return $this->query($sql);
     }
 
+    /**
+     * Get questionslistID for a measurement
+     * @param type $measurementID
+     * @return type
+     */
     public function getQuestionListIDByMeasurementID($measurementID)
     {
         $query = "SELECT QuestionlistID
@@ -81,6 +98,14 @@ class QuestionList extends DAL
         return $result;
     }
 
+    /**
+     * Check if a questionlist is completed by a user within a measurement
+     * 
+     * @param type $measurementID
+     * @param type $questionlistID
+     * @param type $userID
+     * @return boolean
+     */
     public function isComplete($measurementID, $questionlistID, $userID)
     {
         $complete = true;
@@ -114,6 +139,14 @@ class QuestionList extends DAL
         return $complete;
     }
 
+    /**
+     * Get completion date of questionlist in a measurement by  a user
+     * 
+     * @param type $measurementID
+     * @param type $questionListID
+     * @param type $userID
+     * @return boolean
+     */
     public function getCompletionDate($measurementID, $questionListID, $userID)
     {
         // get al questions
@@ -150,6 +183,12 @@ class QuestionList extends DAL
         return $date;
     }
 
+    /**
+     * Get a log for therapists homescreen for all filled in questionlists
+     * 
+     * @param type $therapistID
+     * @return type
+     */
     public function getLogRegistry($therapistID)
     {
         $cTreatment = new Treatment();
@@ -185,37 +224,111 @@ class QuestionList extends DAL
                             $questionlistName = $this->getQuestionListNameByID($questionlistID);
                             $measurementName = $measurement->Name;
                             $points = $cMeasurement->getPointsByUserID($measurementID, $userID);
-                            
+
                             $userName = $cUser->getUserById($userID)->Name;
 
                             $aLogs[] = array("date" => $dateQLComplete,
-                                            "QL_Name" => $questionlistName,
-                                            "MM_Name" => $measurementName,
-                                            "TMT_Name" => $treatmentName,
-                                            "userName" => $userName,
-                                            "userID" => $userID,
-                                            "QL_ID" => $questionlistID,
-                                            "MM_ID" => $measurementID,
-                                            "TMT_ID" => $treatmentID,
-                                            "points" => $points);
+                                "QL_Name" => $questionlistName,
+                                "MM_Name" => $measurementName,
+                                "TMT_Name" => $treatmentName,
+                                "userName" => $userName,
+                                "userID" => $userID,
+                                "QL_ID" => $questionlistID,
+                                "MM_ID" => $measurementID,
+                                "TMT_ID" => $treatmentID,
+                                "points" => $points);
                         }
                     }
                 }
             }
 
             // sort by a defined function
-            usort($aLogs, function($a1, $a2) {
+            usort($aLogs, function($a1, $a2)
+            {
                 $v1 = $a1['date'];
                 $v2 = $a2['date'];
                 return $v2 - $v1; // $v2 - $v1 to reverse direction
             });
-            
+
             // return the array
             $return = $aLogs;
         }
         return $return;
     }
 
+    /**
+     * Get a log for a specific user with only his questionlists in this active treatments
+     * @param type $userID
+     * @return type
+     */
+    public function getUserLog($userID)
+    {
+        $cTreatment = new Treatment();
+        $cMeasurement = new Measurement();
+
+        $return = null;
+        $aLogs = array();
+
+        $treatment = $cTreatment->getActiveTreatmentByUserID($userID);
+
+        if (!is_null($treatment))
+        {
+            $treatmentID = $treatment->TreatmentID;
+
+            $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID, "DESC");
+
+            if (!is_null($measurements))
+            {
+                foreach ($measurements as $measurement)
+                {
+                    $measurementID = $measurement->MeasurementID;
+                    $questionlistID = $measurement->QuestionlistID;
+                    $questionlistName = $this->getQuestionListNameByID($questionlistID);
+                    $measurementName = $measurement->Name;
+
+                    if ($this->isComplete($measurementID, $questionlistID, $userID))
+                    {
+                        $dateQLComplete = $this->getCompletionDate($measurementID, $questionlistID, $userID);
+                        $points = $cMeasurement->getPointsByUserID($measurementID, $userID);
+
+                        $aLogs[] = array(
+                            "date" => $dateQLComplete,
+                            "QL_Name" => $questionlistName,
+                            "MM_Name" => $measurementName,
+                            "QL_ID" => $questionlistID,
+                            "MM_ID" => $measurementID,
+                            "points" => $points,
+                            "finished" => true
+                        );
+                    }
+                    else
+                    {
+                        $aLogs[] = array(
+                            "QL_Name" => $questionlistName,
+                            "MM_Name" => $measurementName,
+                            "QL_ID" => $questionlistID,
+                            "MM_ID" => $measurementID,
+                            "finished" => false
+                        );
+                    }
+                }
+
+                // return the array
+                $return = $aLogs;
+            }
+        }
+
+        return $return;
+    }
+
+    /**
+     * Check if a user belongs to a treatment based on this question list
+     * 
+     * @param type $userID
+     * @param type $questionListID
+     * @param type $measurementID
+     * @return type
+     */
     public function checkTreatment($userID, $questionListID, $measurementID)
     {
         $sql = "SELECT *

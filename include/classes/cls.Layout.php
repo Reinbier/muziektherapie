@@ -3,6 +3,8 @@
 /**
  * @author: Reinier Gombert
  * @date: 5-dec-2016
+ * 
+ * This abstract class contains the defaults for the layouts for the different users
  */
 
 abstract class Layout extends DAL
@@ -57,16 +59,32 @@ abstract class Layout extends DAL
         return $breadcrumbs;
     }
     
+    /**
+     * Header
+     * 
+     * @return string
+     */
     public function getHeader()
     {
         return '<img class="img-responsive" src="/images/Weblogo.png" alt="Sonja Aalbers" />';
     }
     
+    /**
+     * Content of the page
+     * 
+     * @param type $content
+     * @return type
+     */
     public function getContent($content)
     {
         return '<div class="container-fluid">' . $content . '</div>';
     }
     
+    /**
+     * Footer
+     * 
+     * @return string
+     */
     public function getFooter()
     {
         return '

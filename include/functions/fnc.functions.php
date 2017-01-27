@@ -17,6 +17,12 @@ function NederlandseDatumTijd($input)
     return date("d-m-Y H:i:s", (!is_numeric($input) ? strtotime($input) : $input));
 }
 
+/**
+ * Method for converting roles from an array to a comma separated string with quotes surrounding the role
+ * 
+ * @param type $roles
+ * @return type
+ */
 function convertRolesToStringForQuery($roles)
 {
     foreach ($roles as &$role)

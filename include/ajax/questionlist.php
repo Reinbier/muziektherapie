@@ -7,11 +7,12 @@
 // include global config file
 require_once($_SERVER['DOCUMENT_ROOT'] . '/include/config/conf.config.php');
 
-
+// get action
 if (isset($_REQUEST["action"]))
 {
     $action = stripslashes(json_decode($_REQUEST["action"]));
 
+    // create questionlist
     if ($action === "createQuestionList")
     {
         // get parameters
@@ -59,7 +60,7 @@ if (isset($_REQUEST["action"]))
                 }
             }
         }
-        
+        // return json to js file
         echo json_encode(
                 array(
                     "title" => "Succes!", 
@@ -71,11 +72,11 @@ if (isset($_REQUEST["action"]))
                 )
             );
     }
-    else if ($action === "fillInQuestionList")
+    else if ($action === "fillInQuestionList") // the question list is being filled in
     {
         // get parameters
         $questionListParams = json_decode($_REQUEST["questionListParams"], true);
-        
+        // set vars
         $cAnswer = new Answer();
         $measurementID = $questionListParams["measurementID"];
         $userID = $questionListParams["userID"];
@@ -85,16 +86,16 @@ if (isset($_REQUEST["action"]))
         {
             if(is_null($question["rowid"]))
             {
-                // het gaat om een nieuw antwoord
+                // it's a new answer
                 $cAnswer->insertAnswer($measurementID, $userID, $question["questionID"], $question["column"], $question["answer"]);
             }
             else
             {
-                // het bestaande antwoord moet worden geupdate!
+                // it's an existing one and needs update
                 $cAnswer->updateAnswer($question["rowid"], $question["column"], $question["answer"]);
             }
         }
-        
+        // return json to js file
         echo json_encode(
                 array(
                     "title" => "Succes!", 
@@ -108,7 +109,7 @@ if (isset($_REQUEST["action"]))
     }
 }
 else
-{
+{ // return error
     echo json_encode(
             array(
                 "title" => "Aanvraag mislukt",

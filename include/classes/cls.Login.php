@@ -3,6 +3,8 @@
 /**
  * @author: Reinier Gombert
  * @date: 24-nov-2016
+ * 
+ * Logs in a user
  */
 
 class Login extends DAL
@@ -42,8 +44,33 @@ class Login extends DAL
         return false;
     }
     
+    /**
+     * Check if two passwords match
+     * 
+     * @param type $password
+     * @param type $dbPassword
+     * @return type
+     */
     public function checkPassword($password, $dbPassword)
     {
         return $password == $dbPassword;
+    }
+    
+    /**
+     * Check if a given users emailadres exists
+     * 
+     * @return boolean
+     */
+    public function checkEmailExists()
+    {
+        $cUser = new User();
+        $userData = $cUser->getUserByEmail($this->email);
+        
+        // does a user exist with this email?
+        if(!is_null($userData))
+        {
+            return true;
+        }
+        return false;
     }
 }

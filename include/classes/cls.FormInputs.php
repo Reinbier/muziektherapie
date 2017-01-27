@@ -46,6 +46,9 @@ class FormInputs
         $this->wInput = $val;
     }
 
+    /**
+     * display message that there are mandatory fields
+     */
     public function disableMandatoryNotification()
     {
         $this->mandatoryNotification = false;
@@ -173,6 +176,14 @@ class FormInputs
         );
     }
 
+    /**
+     * 
+     * @param type $questionID
+     * @param type $question
+     * @param type $answer
+     * @param type $selectedID
+     * @param type $disabled
+     */
     public function addOpenQuestion($questionID, $question, $answer = "", $selectedID = null, $disabled = "")
     {
         $this->aInputs[] = array(
@@ -183,6 +194,13 @@ class FormInputs
         );
     }
 
+    /**
+     * Add a submit button to the form
+     * 
+     * @param type $name
+     * @param type $text
+     * @param type $class
+     */
     public function addButton($name, $text = "Verzenden", $class = "primary")
     {
         $this->aInputs[] = array(
@@ -193,11 +211,21 @@ class FormInputs
         );
     }
 
+    /**
+     * Add a reset button to the form
+     * 
+     * @param type $text
+     */
     public function addResetButton($text = "Reset")
     {
         $this->btnReset = $text;
     }
 
+    /**
+     * Add a legend
+     * 
+     * @param type $text
+     */
     public function addLegend($text)
     {
         $this->aInputs[] = array(
@@ -208,6 +236,12 @@ class FormInputs
         );
     }
 
+    /**
+     * Add a help-block
+     * 
+     * @param type $tag
+     * @param type $text
+     */
     public function addHelpBlock($tag, $text)
     {
         $this->aHelpBlocks[$tag] = $text;

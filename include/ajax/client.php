@@ -6,15 +6,20 @@
  */
 require_once ($_SERVER['DOCUMENT_ROOT'] . '/include/config/conf.config.php');
 
+// if there is an action
 if (isset($_REQUEST['action']))
 {
+    // get action
     $action = stripslashes(json_decode($_REQUEST['action']));
 
+    // drawgraph
     if ($action === 'drawGraph')
     {
+        // get vars
         $treatmentID = stripslashes(json_decode($_REQUEST["treatmentid"]));
         $role = stripslashes(json_decode($_REQUEST["role"]));
 
+        // set rolename in dutch
         if ($role == "therapist")
         {
             $roleName = "Therapeut";
@@ -23,10 +28,12 @@ if (isset($_REQUEST['action']))
         {
             $roleName = "Client";
         }
-        
+
+        // get data for graph for this rolename
         $cTreatment = new Treatment();
         $aParams = $cTreatment->drawGraph($treatmentID, $roleName);
-        
+
+        // return parameters to the js file
         if (!empty($aParams))
         {
             echo
@@ -47,6 +54,5 @@ if (isset($_REQUEST['action']))
                     )
             );
         }
-        //}
     }
 }

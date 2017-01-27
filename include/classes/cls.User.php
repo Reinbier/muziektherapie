@@ -3,6 +3,8 @@
 /**
  * @author: Reinier Gombert
  * @date: 22-nov-2016
+ * 
+ * Handles everything about users and their data
  */
 class User extends DAL
 {
@@ -16,6 +18,10 @@ class User extends DAL
         $this->userID = $userID;
     }
 
+    /**
+     * Check if this user is a therapist
+     * @return boolean
+     */
     public function isTherapist()
     {
         $sql = "SELECT *
@@ -34,6 +40,10 @@ class User extends DAL
         return false;
     }
 
+    /**
+     * Check if this user is a client
+     * @return boolean
+     */
     public function isClient()
     {
         $sql = "SELECT *
@@ -92,6 +102,13 @@ class User extends DAL
         return $result;
     }
 
+    /**
+     * Add a new user tot the database
+     * 
+     * @param type $aParams
+     * @param type $role
+     * @return type
+     */
     public function insertUser($aParams, $role)
     {
         // already add date_added
@@ -116,6 +133,13 @@ class User extends DAL
         return $this->insertUserRole($insertedID, $role);
     }
 
+    /**
+     * Link a user to a role
+     * 
+     * @param type $userID
+     * @param type $roleName
+     * @return type
+     */
     public function insertUserRole($userID, $roleName)
     {
         $cRole = new Role();
@@ -128,6 +152,9 @@ class User extends DAL
         ));
     }
 
+    /*
+     * Get all users
+     */
     public function getAllUsers($roles = null)
     {
         $fields = $this->getDecryptedTableFields("USER");
@@ -155,6 +182,10 @@ class User extends DAL
         return $result;
     }
 
+    /**
+     * Get all clients
+     * @return type
+     */
     public function getAllClients()
     {
         $cRole = new Role();
@@ -194,6 +225,10 @@ class User extends DAL
         return $result;
     }
 
+    /**
+     * Get all therapists
+     * @return type
+     */
     public function getAllTherapists()
     {
         $cRole = new Role();
@@ -214,6 +249,12 @@ class User extends DAL
         return $result;
     }
 
+    /**
+     * Get all users within a treatment
+     * 
+     * @param type $treatmentID
+     * @return type
+     */
     public function getUsersByTreatmentID($treatmentID)
     {
         $fields = $this->getDecryptedTableFields("USER");

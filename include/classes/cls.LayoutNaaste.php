@@ -17,6 +17,13 @@ class LayoutNaaste extends Layout
         $this->userID = $userID;
     }
 
+    /**
+     * Build the page for this user with the given content
+     * 
+     * @param type $content
+     * @param type $sidebar
+     * @return type
+     */
     private function buildPage($content = "No content found..", $sidebar = true)
     {
         $breadcrumbs = $this->getBreadcrumbs();
@@ -81,6 +88,10 @@ class LayoutNaaste extends Layout
         ';
     }
 
+    /**
+     * Header
+     * @return string
+     */
     public function getHeader()
     {
         $header = parent::getHeader();
@@ -116,8 +127,16 @@ class LayoutNaaste extends Layout
         return $header;
     }
 
+    /**
+     * Show an overview of questionlists for this user
+     * 
+     * @param type $measurementID
+     * @param type $questionListID
+     * @return type
+     */
     public function getQuestionListPage($measurementID, $questionListID)
     {
+        // if the user selects a questionlist, go to the questionlist details page
         if (!is_null($questionListID))
         {
             return $this->getQuestionListDetailsPage($measurementID, $questionListID);
@@ -126,36 +145,54 @@ class LayoutNaaste extends Layout
         {
             // set page vars
             $this->page = "home";
-            $this->title = "Vragenlijsten";
+            $this->title = "Overzicht";
 
+            // get treatment
             $cTreatment = new Treatment();
-            $treatment = $cTreatment->getActiveTreatmentByUserID($this->userID);
+            $treatments = $cTreatment->getActiveTreatmentsByUserID($this->userID);
 
-            $output = "Geen vragenlijsten die nog open staan";
+            $alert = '';
+            $output = '<div class="alert alert-info">U heeft geen behandeling openstaan.</div>';
 
-            if ($treatment)
+            // show treatments for this user
+            if (!is_null($treatments))
             {
-                $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
-                $cQuestionList = new QuestionList();
+                $output = '';
 
-                if ($measurements)
+                if (count($treatments) > 1)
                 {
-                    $output = '';
-                    foreach ($measurements as $measurement)
+                    $alert = '<div class="alert alert-info"><strong>Let op!</strong> U bent toegevoegd aan meerdere behandelingen.</div>';
+                }
+                    
+                foreach($treatments as $treatment)
+                {
+                    $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
+                    $treatmentName = $treatment->Name;
+                    $cQuestionList = new QuestionList();
+
+                    $output .= '
+                        <div class="row">
+                            <div class="col-md-12"><h2>'.$treatmentName.'</h2></div>
+                    ';
+                    if ($measurements)
                     {
-                        $questionlistID = $measurement->QuestionlistID;
-                        $questionlistName = $cQuestionList->getQuestionListNameByID($questionlistID);
-
-                        if ($cQuestionList->isComplete($measurement->MeasurementID, $questionlistID, $this->userID))
+                        // show measurements within treatment
+                        foreach ($measurements as $measurement)
                         {
-                            $labelComplete = '<div class="label label-success">Volledig ingevuld</div>';
-                        }
-                        else
-                        {
-                            $labelComplete = '<div class="label label-warning">Nog niet volledig ingevuld</div>';
-                        }
+                            $questionlistID = $measurement->QuestionlistID;
+                            $questionlistName = $cQuestionList->getQuestionListNameByID($questionlistID);
 
-                        $output .=
+                            // see if the list is completed
+                            if ($cQuestionList->isComplete($measurement->MeasurementID, $questionlistID, $this->userID))
+                            {
+                                $labelComplete = '<div class="label label-success">Volledig ingevuld</div>';
+                            }
+                            else
+                            {
+                                $labelComplete = '<div class="label label-warning">Nog niet volledig ingevuld</div>';
+                            }
+
+                            $output .=
                                 '<div class="col-md-4">
                                     <div class="well">
                                         ' . $labelComplete . '
@@ -164,14 +201,21 @@ class LayoutNaaste extends Layout
                                         <a href="/vragenlijsten/' . $measurement->MeasurementID . '/' . $questionlistID . '/" class="btn btn-primary">Naar vragenlijst</a>
                                      </div>
                                 </div>';
+                        }
                     }
+                    else
+                    {
+                        $output .= '<div class="alert alert-info">Er zijn nog geen metingen gestart.</div>';
+                    }
+                    $output .= '</div>';
                 }
             }
 
+            // fill the content
             $content = '
                 <div class="row">
                     <div class="col-md-12">
-                        ' . $output . ' 
+                        ' . $alert . $output . ' 
                     </div>
                 </div>
             ';
@@ -180,6 +224,13 @@ class LayoutNaaste extends Layout
         }
     }
 
+    /**
+     * Questionlist details page where the user can fill in the questionlist
+     * 
+     * @param type $measurementID
+     * @param type $questionListID
+     * @return type
+     */
     private function getQuestionListDetailsPage($measurementID, $questionListID)
     {
         $userID = $this->userID;
@@ -190,14 +241,14 @@ class LayoutNaaste extends Layout
         $this->breadcrumbs = array("Home" => "home", $questionListName => "");
 
         $treatmentCheck = $cQuestionList->checkTreatment($this->userID, $questionListID, $measurementID);
-
+        // is the user in the right treatment?
         if (is_null($treatmentCheck))
         {
             return $this->getQuestionListOverviewPage();
         }
         else
         {
-
+            // set vars
             $formbody = "Geen vragen gevonden";
             $cQuestion = new Question();
             $cForminputs = new FormInputs();
@@ -206,6 +257,7 @@ class LayoutNaaste extends Layout
             $cForminputs->disableMandatoryNotification();
             $measurementID = $treatmentCheck->MeasurementID;
 
+            // get questions
             $questions = $cQuestionList->getQuestions($questionListID);
             $disabled = "";
             if (!is_null($questions))
@@ -216,11 +268,13 @@ class LayoutNaaste extends Layout
                 }
                 foreach ($questions as $question)
                 {
+                    // multiple choice
                     if ($cQuestion->isMultipleChoice($question->QuestionID))
                     {
                         $pos_answers = $cQuestion->getPossibleAnswers($question->QuestionID);
                         if (!empty($pos_answers))
                         {
+                            // did the user already provided an answer?
                             $selectedAnswer = $cQuestion->getSelectedAnswer($measurementID, $question->QuestionID, $userID);
                             $selected = "";
                             $selectedID = null;
@@ -234,6 +288,7 @@ class LayoutNaaste extends Layout
                             {
                                 $aAnswers[$pos_answer->PossibleID] = $pos_answer->Answer;
                             }
+                            // add multiple choice question to the form
                             $cForminputs->addMultipleChoiceQuestion($question->QuestionID, $question->Question, $aAnswers, $selected, $selectedID, $disabled);
                         }
                     }
@@ -242,14 +297,16 @@ class LayoutNaaste extends Layout
                         $answer = $cQuestion->getAnswer($measurementID, $question->QuestionID, $userID);
                         $selected = "";
                         $selectedID = null;
-                        if (!is_null($answer))
+                        if (!is_null($answer)) // did the user already provided an answer?
                         {
                             $selected = $answer->Answer;
                             $selectedID = $answer->AnswerID;
                         }
+                        // add open question to the form
                         $cForminputs->addOpenQuestion($question->QuestionID, $question->Question, $selected, $selectedID, $disabled);
                     }
                 }
+                // check if the question is complete, then show not a save button
                 if (!($cQuestionList->isComplete($measurementID, $questionListID, $userID)))
                 {
                     $cForminputs->addButton("fillInQuestionList", "Opslaan");
@@ -258,7 +315,7 @@ class LayoutNaaste extends Layout
                 $formbody = $cForminputs->createFormBody();
             }
 
-
+            // create form
             $content = '<div class="row">
                 <div class="col-md-12">
                     <div class="well">

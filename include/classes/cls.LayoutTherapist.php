@@ -17,6 +17,10 @@ class LayoutTherapist extends Layout
         $this->userID = $userID;
     }
 
+    /**
+     * Header
+     * @return string
+     */
     public function getHeader()
     {
         $return = parent::getHeader();
@@ -72,6 +76,13 @@ class LayoutTherapist extends Layout
         return $return;
     }
 
+    /**
+     * Buidl the page with the given content
+     * 
+     * @param type $content
+     * @param type $sidebar
+     * @return type
+     */
     private function buildPage($content = "Geen invulling voor deze pagina..", $sidebar = true)
     {
         $breadcrumbs = $this->getBreadcrumbs();
@@ -119,6 +130,12 @@ class LayoutTherapist extends Layout
         return $this->getHeader() . parent::getContent($return) . $this->getFooter();
     }
 
+    /**
+     * Set left sidebar
+     * 
+     * @param string $value a page to show this for
+     * @return type
+     */
     private function getLeftSideBar($value)
     {
         if ($value === "vragenlijst")
@@ -152,6 +169,10 @@ class LayoutTherapist extends Layout
         ';
     }
 
+    /**
+     * Display the homepage
+     * @return type
+     */
     public function getHomePage()
     {
         $this->page = "home";
@@ -177,8 +198,8 @@ class LayoutTherapist extends Layout
                     <li class='list-group-item'>
                         <span class='badge'>Aantal punten: " . $log["points"] . "</span>
                         <a href='/overzicht/gebruikers/" . $log["userID"] . "/'>" . $log["userName"] . "</a> heeft vragenlijst 
-                        <a href='/overzicht/vragenlijsten/" . $log["QL_ID"] . "/'>" . $log["QL_Name"] . "</a> afgerond voor meting 
-                        <a href='/overzicht/metingen/" . $log["MM_ID"] . "/'>" . $log["MM_Name"] . "</a> van 
+                        <a href='/overzicht/metingen/" . $log["MM_ID"] . "/" . $log["QL_ID"] . "/" . $log["userID"] . "/'>" . $log["QL_Name"] . "</a> afgerond voor meting 
+                        <a href='/overzicht/metingen/" . $log["MM_ID"] . "/" . $log["QL_ID"] . "/'>" . $log["MM_Name"] . "</a> van 
                         <a href='/overzicht/behandelingen/" . $log["TMT_ID"] . "/'>" . $log["TMT_Name"] . "</a> op 
                         <span class='text-info'>" . NederlandseDatumTijd($log["date"]) . "</span>
                     </li>";
@@ -204,6 +225,14 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content);
     }
 
+    /**
+     * Display a page where the user can create something, based on the subpages given
+     * 
+     * @param type $subpage
+     * @param type $subsubpage
+     * @param type $subsubsubpage
+     * @return type
+     */
     public function getNewPage($subpage = null, $subsubpage = null, $subsubsubpage = null)
     {
         switch ($subpage)
@@ -226,6 +255,11 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Create new treatment
+     * 
+     * @return type
+     */
     private function getNewTreatmentPage()
     {
         // set page vars
@@ -251,19 +285,29 @@ class LayoutTherapist extends Layout
                         <div class="form-group">
                             <label for="select" class="col-lg-2 control-label">Selecteer client</label>
                             <div class="col-lg-10">
+        ';
+        if (is_null($allClients))
+        {
+            $content .= '       
+                                <span class="help-block">Er zijn geen clienten in het systeem gevonden. Maak eerst een <a href="/nieuw/client/">nieuwe client</a></span>
+                            </div>
+                        </div>';
+        }
+        else
+        {
+            $content .= '
                                 <select class="form-control" id="selectClient" name="selectClient" data-therapist="' . $this->userID . '" required>
                                     <option value="">Selecteer een client..</option>
                                     <optgroup label="Beschikbare clienten">
-        ';
-        foreach ($allClients as $client)
-        {
-            if (is_null($cTreatment->getActiveTreatmentByUserID($client->UserID)))
+            ';
+            foreach ($allClients as $client)
             {
-                $content .= '<option value="' . $client->UserID . '">' . $client->Name . '</option>';
+                if (is_null($cTreatment->getActiveTreatmentByUserID($client->UserID)))
+                {
+                    $content .= '<option value="' . $client->UserID . '">' . $client->Name . '</option>';
+                }
             }
-        }
-        $content .= '
-                                    </optgroup>
+            $content .= '           </optgroup>
                                 </select>
                                 <span class="help-block">Clienten die al in een actieve behandeling zitten zijn niet zichtbaar in deze lijst.</span>
                             </div>
@@ -273,6 +317,10 @@ class LayoutTherapist extends Layout
                                 <button type="submit" class="btn btn-primary" id="button-createTreatment" name="button-createTreatment">Aanmaken</button>
                             </div>
                         </div>
+            ';
+        }
+        $content .= '
+                            
                     </fieldset>
                 </form>
             </div>
@@ -281,12 +329,21 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content);
     }
 
+    /**
+     * Method for giving the user a form to assign a new measurement+questionlist to a treatment.
+     * 
+     * @param int $treatmentID  The treatmentID
+     * @param int $qlID         Optional. The questionlistID of which to start a new measurement from. Changeable within the form nonetheless.
+     * @return type
+     */
     private function getNewMeasurementPage($treatmentID, $qlID = null)
     {
+        $cTreatment = new Treatment();
+        $treatmentName = $cTreatment->getTreatmentByTreatmentID($treatmentID)->Name;
         // set page vars
         $this->page = "nieuw";
         $this->title = "Nieuwe meting";
-        $this->breadcrumbs = array("Home" => "home", "Nieuwe meting" => "");
+        $this->breadcrumbs = array("Overzicht" => "overzicht", "Behandelingen" => "behandelingen", $treatmentName => $treatmentID, "Nieuwe meting" => "");
 
         $cQuestionList = new QuestionList();
         $allQuestionLists = $cQuestionList->getAllQuestionLists();
@@ -305,16 +362,28 @@ class LayoutTherapist extends Layout
                         <div class="form-group">
                             <label for="select" class="col-lg-3 control-label">Selecteer vragenlijst</label>
                             <div class="col-lg-9">
+                            ';
+
+        if (is_null($allQuestionLists))
+        {
+            $content .= '       
+                                <span class="help-block">Er zijn geen vragenlijsten in het systeem gevonden. Maak eerst een <a href="/nieuw/vragenlijst/">nieuwe vragenlijst</a></span>
+                            </div>
+                        </div>';
+        }
+        else
+        {
+            $content .= '
                                 <select class="form-control" id="selectQlist" name="selectQlist" data-treatmentid="' . $treatmentID . '" required>
+                                    
                                     <option value="">Selecteer een vragenlijst..</option>
                                     <optgroup label="Vragenlijsten">
-        ';
-        foreach ($allQuestionLists as $qlist)
-        {
-            $content .= '<option value="' . $qlist->QuestionlistID . '" ' . ($qlist->QuestionlistID == $qlID ? "selected" : "") . '>' . $qlist->Name . '</option>';
-        }
-        $content .= '
-                                    </optgroup>
+            ';
+            foreach ($allQuestionLists as $qlist)
+            {
+                $content .= '<option value="' . $qlist->QuestionlistID . '" ' . ($qlist->QuestionlistID == $qlID ? "selected" : "") . '>' . $qlist->Name . '</option>';
+            }
+            $content .= '           </optgroup>
                                 </select>
                             </div>
                         </div>
@@ -323,6 +392,9 @@ class LayoutTherapist extends Layout
                                 <button type="submit" class="btn btn-primary" id="button-createMeasurement" name="button-createMeasurement">Aanmaken</button>
                             </div>
                         </div>
+            ';
+        }
+        $content .= '
                     </fieldset>
                 </form>
             </div>
@@ -331,6 +403,11 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content);
     }
 
+    /**
+     * This method will return a form in which the user can create a new questionlist
+     * 
+     * @return type
+     */
     private function getNewQuestionListPage()
     {
         // set page vars
@@ -410,6 +487,11 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Provides a form where the user can add a new client to the database
+     * 
+     * @return type
+     */
     private function getNewClientPage()
     {
         // set page vars
@@ -513,6 +595,9 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Form to add a kin to the database
+     */
     private function getNewKinPage($roleName)
     {
         // set page vars
@@ -547,6 +632,9 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Form to add a new therapist to the database
+     */
     private function getNewTherapistPage()
     {
         // set page vars
@@ -580,6 +668,15 @@ class LayoutTherapist extends Layout
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Display a page where the user can overvieuw something, based on the subpages given
+     * 
+     * @param type $subpage
+     * @param type $subsubpage
+     * @param type $subsubsubpage
+     * @param type $subsubsubsubpage
+     * @return type
+     */
     public function getOverviewPage($subpage = null, $subsubpage = null, $subsubsubpage = null, $subsubsubsubpage = null)
     {
         switch ($subpage)
@@ -597,6 +694,11 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * 
+     * @param type $treatmentID
+     * @return typeGive the user an overview of all treatments
+     */
     private function getOverviewTreatmentsPage($treatmentID = null)
     {
         if (!is_null($treatmentID))
@@ -612,7 +714,7 @@ class LayoutTherapist extends Layout
 
             $content = '
                 <div class="well">
-                    <table class="table table-striped table-hover dataTable">
+                    <table class="table table-striped table-hover dataTable treatments-Datatable">
                         <thead>
                             <tr>
                                 <th>Naam</th>
@@ -677,6 +779,9 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Overview of one treatment
+     */
     private function getOverviewTreatmentsDetailsPage($treatmentID)
     {
         $cTreatment = new Treatment();
@@ -749,12 +854,15 @@ class LayoutTherapist extends Layout
             $allKin = $cUser->getAllUsers(array("Naaste", "Professional"));
             // store kin in options array
             $aKinOptions = array();
-            foreach ($allKin as $kin)
+            if (!is_null($allKin))
             {
-                if (!$cTreatment->userInTreatment($kin->UserID, $treatmentID))
+                foreach ($allKin as $kin)
                 {
-                    // check if this user not already is in this treatment
-                    $aKinOptions[] = '<option value=' . $kin->UserID . '>' . $kin->Name . '</option>';
+                    if (!$cTreatment->userInTreatment($kin->UserID, $treatmentID))
+                    {
+                        // check if this user not already is in this treatment
+                        $aKinOptions[] = '<option value=' . $kin->UserID . '>' . $kin->Name . '</option>';
+                    }
                 }
             }
 
@@ -784,13 +892,20 @@ class LayoutTherapist extends Layout
                                 <div class="col-md-12">
                                     <div class="btn-group">
                                         <a href="/nieuw/meting/' . $treatmentID . '/" class="btn btn-success">Nieuwe meting</a>
-                                        <a href="#" class="btn btn-success dropdown-toggle tooltip-toggle" data-toggle="dropdown" aria-expanded="false" data-placement="right" title="" data-original-title="Selecteer een vragenlijst"><span class="caret"></span></a>
+                                        <a href="#" class="btn btn-success dropdown-toggle tooltip-toggle" data-toggle="dropdown" aria-expanded="false" data-placement="top" title="" data-original-title="Selecteer een vragenlijst"><span class="caret"></span></a>
                                         <ul class="dropdown-menu">
             ';
                 $allQuestionLists = $cQuestionlist->getAllQuestionLists();
-                foreach ($allQuestionLists as $qlist)
+                if (is_null($allQuestionLists))
                 {
-                    $content .= '<li><a href="/nieuw/meting/' . $treatmentID . '/' . $qlist->QuestionlistID . '">' . $qlist->Name . '</a></li>';
+                    $content .= '<li><a>Er is nog geen vragenlijst</a></li>';
+                }
+                else
+                {
+                    foreach ($allQuestionLists as $qlist)
+                    {
+                        $content .= '<li><a href="/nieuw/meting/' . $treatmentID . '/' . $qlist->QuestionlistID . '">' . $qlist->Name . '</a></li>';
+                    }
                 }
                 $content .= '
                                         </ul>
@@ -868,7 +983,7 @@ class LayoutTherapist extends Layout
                                 <h3 class="panel-title">Globale voortgang</h3>
                             </div>
                             <div class="panel-body">
-                                <div id="progressChart" data-treatmentid="' . $treatmentID . '" data-role="therapist" style="height: 40rem;">
+                                <div id="progressChart" data-treatmentid="' . $treatmentID . '" data-role="therapist">
 
                                 </div>
                             </div>
@@ -881,6 +996,9 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Overview of measurements
+     */
     private function getOverviewMeasurementsPage($measurementID = null, $questionListID = null, $userID = null)
     {
         $this->page = "overzicht";
@@ -904,6 +1022,13 @@ class LayoutTherapist extends Layout
         return $this->getOverviewTreatmentsPage();
     }
 
+    /**
+     * Overview of questionlist and users within a measurement
+     * 
+     * @param type $measurementID
+     * @param type $questionListID
+     * @return type
+     */
     private function getOverviewMeasurementsDetailsPage($measurementID, $questionListID)
     {
         $cTreatment = new Treatment();
@@ -978,6 +1103,14 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Overview of a questionlist to fill in for this user
+     * 
+     * @param type $measurementID
+     * @param type $questionListID
+     * @param type $userID
+     * @return type
+     */
     private function getOverviewMeasurementsQuestionListDetailsPage($measurementID, $questionListID, $userID)
     {
         $cQuestionList = new QuestionList();
@@ -1095,6 +1228,12 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Overview of all users
+     * 
+     * @param type $userID
+     * @return type
+     */
     private function getOverviewUsersPage($userID)
     {
         if (!is_null($userID))
@@ -1110,7 +1249,7 @@ class LayoutTherapist extends Layout
 
             $content = '
                 <div class="well">
-                    <table class="table table-striped table-hover dataTable">
+                    <table class="table table-striped table-hover dataTable users-Datatable">
                         <thead>
                             <tr>
                                 <th>Naam</th>
@@ -1153,6 +1292,12 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Overview of a specific user
+     * 
+     * @param type $userID
+     * @return type
+     */
     private function getOverviewUsersDetailsPage($userID)
     {
         $cUser = new User();
@@ -1171,6 +1316,7 @@ class LayoutTherapist extends Layout
 
         if (!is_null($treatment))
         {
+            $output .= '<div class="alert alert-dismissible alert-info"><strong>Behandeling:</strong> ' . $treatment->Name . '</div>';
             $treatmentID = $treatment->TreatmentID;
             $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
 
@@ -1199,22 +1345,328 @@ class LayoutTherapist extends Layout
         }
 
         $content = '
-        <div class="row">
-            <div class="col-md-4">
-                <div class="row">
-                    ' . $output . '
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Metingen binnen huidige behandeling</h3>
+                        </div>
+                        <div class="panel-body">
+                            ' . $output . '
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-8">
-                <div id="progressChart" data-treatmentid="' . $treatmentID . '" data-role="client" style="height: 40rem;">
+                <div class="col-md-7">
+                    <div id="progressChart" data-treatmentid="' . $treatmentID . '" data-role="therapist">
 
+                    </div>
                 </div>
             </div>
-        </div>';
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Persoonlijke gegevens</h3>
+                        </div>
+                        <div class="panel-body">
+                            <form class="form-horizontal">
+                                <fieldset>
+                                
+                                    <div class="row">
+                                    
+                                        <div class="col-md-6">
+                                            <legend>Algemeen</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Naam</strong></div>
+                                                <div class="col-lg-9">
+                                                    ' . $userDetails->Name . '
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Adres</strong></div>
+                                                <div class="col-lg-9">
+                                                    ' . $userDetails->Address . '
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Woonplaats</strong></div>
+                                                <div class="col-lg-9">
+                                                    ' . $userDetails->Place . '
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Telefoon</strong></div>
+                                                <div class="col-lg-9">
+                                                    ' . $userDetails->Phone . '
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Mobiel</strong></div>
+                                                <div class="col-lg-9">
+                                                    ' . $userDetails->Mobile . '
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>E-mail</strong></div>
+                                                <div class="col-lg-9">
+                                                    ' . $userDetails->Email . '
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <legend>Persoonlijk</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Geboortedatum</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Date_of_birth . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Geslacht</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Gender . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Gehuwd</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . ($userDetails->Married == 1 ? 'Ja' : 'Nee') . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Samenwonend</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . ($userDetails->Cohabiting == 1 ? 'Ja' : 'Nee') . '</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    <div class="row">
+                                    
+                                        <div class="col-md-6">
+                                            <legend>Opleiding</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Hoogste opleiding</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Highest_education . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Opleidingssoort</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Type_of_education . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Activiteiten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Activities . '</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <legend>Hulpverleners</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Verwijzers</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Referrer . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Huisarts</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Doctor . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Huisartspraktijk</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Doctor_practise . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Betrokken behandelaars</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Concerned_therapists . '</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    <div class="row">
+                                    
+                                        <div class="col-md-12">
+                                            <legend>Diagnostiek</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Beschreven problematiek</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Issues . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Officiële diagnose</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . ($userDetails->Official_diagnosed == 1 ? 'Ja' : 'Nee') . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Welke professional heeft de diagnose gesteld?</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Who_diagnosed . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Hoe is de diagnose gesteld?</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Way_of_diagnose . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Aanleiding depressieve klachten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Occasion_of_depression . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Duur van depressieve klachten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Length_of_depression . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Ernst van depressive klachten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Severity_of_depression . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Aantal keren terugval</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Number_of_recidive . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Lichtgevoeligheid</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Sensitivity . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Andere klachten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Complaints . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Sociaal netwerk</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Social_network . '</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <legend>Behandeling</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Doel muziektherapie</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Goal_musictherapy . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Antidepressiva</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Antidepressiva . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Andere behandelingen t.b.v. depressieve klachten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Other_depression_treatment . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Andere medicatie die invloed heeft op depressieve klachten</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Other_medication . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Eerder muziektherapeutische behandelingen</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . ($userDetails->Earlier_musictherapy_treatment == 1 ? 'Ja' : 'Nee') . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Muziekervaring</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Music_experience . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Muzikale voorkeuren</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Musical_preferences . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Zet je muziek in om je stemming te beïnvloeden</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Mood_music_usage . '</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    <div class="row">
+                                    
+                                        <div class="col-md-12">
+                                            <legend>Systematische n=1 methode</legend>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Akkoord dat bekenden vragenlijst invullen?</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . ($userDetails->Allow_relatives == 1 ? 'Ja' : 'Nee') . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Akkoord dat bekenden vragenlijst invullen?</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Chosen_relatives . '</p>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="col-lg-3 text-left"><strong>Gekozen netwerk die vragenlijst gaat invullen</strong></div>
+                                                <div class="col-lg-9">
+                                                    <p>' . $userDetails->Email_relatives . '</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ';
 
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Overview of all questionlists
+     * 
+     * @param type $questionListID
+     * @return type
+     */
     private function getOverviewQuestionListsPage($questionListID)
     {
         if (!is_null($questionListID))
@@ -1265,6 +1717,12 @@ class LayoutTherapist extends Layout
         }
     }
 
+    /**
+     * Overview of a specific questionlist
+     * 
+     * @param type $questionListID
+     * @return type
+     */
     public function getOverviewQuestionListsDetailsPage($questionListID)
     {
         $cQuestionlist = new QuestionList();

@@ -3,6 +3,8 @@
 /**
  * @author: Reinier Gombert, Patrick Pieper
  * @date: 5-dec-2016
+ * 
+ * This class will handle the layout for the client
  */
 class LayoutClient extends Layout
 {
@@ -17,6 +19,13 @@ class LayoutClient extends Layout
         $this->userID = $userID;
     }
 
+    /**
+     * Build the page with the given content
+     * 
+     * @param type $content
+     * @param type $sidebar
+     * @return type
+     */
     private function buildPage($content = "No content found..", $sidebar = true)
     {
         $breadcrumbs = $this->getBreadcrumbs();
@@ -67,20 +76,35 @@ class LayoutClient extends Layout
         return $this->getHeader() . parent::getContent($return) . $this->getFooter();
     }
 
+    /**
+     * Set a sidebar
+     * 
+     * @return string
+     */
     private function getLeftSideBar()
     {
         return '
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Meteen naar:</h3>
+                <h3 class="panel-title">Snel naar:</h3>
             </div>
             <div class="panel-body">
-                <a href="metingstarten.html" class="btn btn-success">Nieuwe meting</a>
+                <p>
+                    <a href="/voortgang/" class="btn btn-success">Mijn voortgang</a>
+                </p>
+                <p>
+                    <a href="/vragenlijsten/" class="btn btn-warning">Vragenlijsten</a>
+                </p>
             </div>
         </div>
         ';
     }
 
+    /**
+     * Override the header
+     * 
+     * @return string
+     */
     public function getHeader()
     {
         $header = parent::getHeader();
@@ -118,6 +142,13 @@ class LayoutClient extends Layout
         return $header;
     }
 
+    /**
+     * Show the questionlist page or the given subpage
+     * 
+     * @param type $subpage
+     * @param type $subsubpage
+     * @return type
+     */
     public function getQuestionListPage($subpage = null, $subsubpage = null)
     {
         if (is_numeric($subpage))
@@ -135,6 +166,11 @@ class LayoutClient extends Layout
         }
     }
 
+    /**
+     * Displays the homepage
+     * 
+     * @return type
+     */
     public function getHomePage()
     {
         $this->page = "home";
@@ -143,32 +179,78 @@ class LayoutClient extends Layout
         $cUser = new User();
         $userData = $cUser->getUserById($this->userID);
 
+        // get completion dates of completed questionlists
+        $cQuestionList = new QuestionList();
+        $registries = $cQuestionList->getUserLog($this->userID);
+
+        // check if there are logs found
+        if (!is_null($registries))
+        {
+            $message = '<ul class="list-group">';
+            // set a limit for the amount of lines showed to the user
+            $limit = 10;
+            foreach ($registries as $log)
+            {
+                if ($limit == 0)
+                { // when limit reaches 0, break this loop
+                    break;
+                }
+                if ($log["finished"] == true)
+                {
+                    $message .= "
+                        <li class='list-group-item'>
+                            <span class='badge'>Aantal punten: " . $log["points"] . "</span>
+                            U heeft de vragenlijst <a href='/vragenlijsten/" . $log["MM_ID"] . "/" . $log["QL_ID"] . "/'>" . $log["QL_Name"] . "</a> afgerond op 
+                            <span class='text-info'>" . NederlandseDatumTijd($log["date"]) . "</span>
+                        </li>";
+                }
+                else
+                {
+                    $message .= "
+                        <li class='list-group-item'>
+                            De vragenlijst <a href='/vragenlijsten/" . $log["MM_ID"] . "/" . $log["QL_ID"] . "/'>" . $log["QL_Name"] . "</a> is nog niet ingevuld.
+                        </li>";
+                }
+                // decrement limit
+                $limit--;
+            }
+            $message .= '</ul>';
+        }
+        else
+        {
+            $message = '<p class="lead">Op dit moment geen meldingen om weer te geven</p>';
+        }
+
         $content = '
-        <div class="row">
-            <div class="col-md-6 well">
-                <h3>Welkom ' . $userData->Name . '</h3>
+            <div class="well">
+                <h1>Welkom ' . $userData->Name . '</h1>
                 <h4>Meldingen</h4>
-                <p class="lead">Op dit moment geen meldingen om weer te geven</p>
+                ' . $message . '
             </div>
-        </div>
         ';
 
-        return $this->buildPage($content, false);
+        return $this->buildPage($content);
     }
 
+    /**
+     * Display the progress page for the user
+     * 
+     * @return type
+     */
     public function getProgressPage()
     {
         $cTreatment = new Treatment();
         $output = "";
-
+        // get active treatment
         $treatment = $cTreatment->getActiveTreatmentByUserID($this->userID);
 
+        // if it exists, continue
         if ($treatment)
         {
             $treatmentID = $treatment->TreatmentID;
             $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatmentID);
-            
 
+            // if it contains measurements, print them on screen
             if ($measurements)
             {
                 $cQuestionlist = new QuestionList();
@@ -188,12 +270,13 @@ class LayoutClient extends Layout
                 }
             }
         }
-        if ($output == "")
+        if ($output == "") // no measurements found
         {
             $treatmentID = "0";
             $output = "<div class='col-md-12'>Geen metingen gevonden voor deze behandeling</div>";
         }
 
+        // show page
         $this->page = "voortgang";
         $this->title = "Overzicht eigen gegevens";
         $content = '
@@ -221,25 +304,32 @@ class LayoutClient extends Layout
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Show the overview of questionlists
+     * 
+     * @return type
+     */
     private function getQuestionListOverviewPage()
     {
         $this->page = "vragenlijsten";
         $this->title = "Vragenlijsten";
         $cTreatment = new Treatment();
         $treatment = $cTreatment->getActiveTreatmentByUserID($this->userID);
+        // show active treatment
         if ($treatment)
         {
-
+            // get measurements
             $measurements = $cTreatment->getMeasurementsbyTreatmentID($treatment->TreatmentID);
             $cQuestionList = new QuestionList();
 
-
+            // if there are no measurements
             if (!$measurements)
             {
                 $output = "Geen vragenlijsten die nog open staan";
             }
             else
             {
+                // show measurements
                 $output = '';
                 foreach ($measurements as $measurement)
                 {
@@ -269,7 +359,7 @@ class LayoutClient extends Layout
         }
         else
         {
-            $output = "Geen vragenlijsten gevonden.";
+            $output = "Geen vragenlijsten gevonden."; // no questionlists
         }
 
         $content = '
@@ -282,8 +372,16 @@ class LayoutClient extends Layout
         return $this->buildPage($content, false);
     }
 
+    /**
+     * Show a questionlist in full and for the user to fill in.
+     * 
+     * @param int $measurementID
+     * @param int $questionListID
+     * @return type
+     */
     private function getQuestionListDetailsPage($measurementID, $questionListID)
     {
+        // set page vars
         $userID = $this->userID;
         $cQuestionList = new QuestionList();
         $questionListName = $cQuestionList->getQuestionListNameByID($questionListID);
@@ -293,13 +391,14 @@ class LayoutClient extends Layout
         $this->breadcrumbs = array("Vragenlijsten" => "vragenlijsten", $questionListName => "");
         $treatmentCheck = $cQuestionList->checkTreatment($this->userID, $questionListID, $measurementID);
 
+        // if this user has the wrong questionlist
         if (is_null($treatmentCheck))
         {
-            return $this->getQuestionListOverviewPage();
+            return $this->getQuestionListOverviewPage(); // return to his/her overview
         }
         else
         {
-
+            // set initial vars
             $formbody = "Geen vragen gevonden";
             $cQuestion = new Question();
             $cForminputs = new FormInputs();
@@ -308,6 +407,7 @@ class LayoutClient extends Layout
             $cForminputs->disableMandatoryNotification();
             $measurementID = $treatmentCheck->MeasurementID;
 
+            // display questions
             $questions = $cQuestionList->getQuestions($questionListID);
             $disabled = "";
             if (!is_null($questions))
@@ -318,37 +418,43 @@ class LayoutClient extends Layout
                 }
                 foreach ($questions as $question)
                 {
+                    // multiple choice question
                     if ($cQuestion->isMultipleChoice($question->QuestionID))
                     {
                         $pos_answers = $cQuestion->getPossibleAnswers($question->QuestionID);
                         if (!empty($pos_answers))
                         {
+                            // check if the user already filled in this question
                             $selectedAnswer = $cQuestion->getSelectedAnswer($measurementID, $question->QuestionID, $userID);
                             $selected = "";
                             $selectedID = null;
-                            if (!is_null($selectedAnswer))
+                            if (!is_null($selectedAnswer)) // set vars for prefilled answer
                             {
                                 $selected = $selectedAnswer->PossibleAnswerID;
                                 $selectedID = $selectedAnswer->AnswerID;
-                            }
+                            } 
+                            // get possible answers for this multiple choice
                             $aAnswers = array();
                             foreach ($pos_answers as $pos_answer)
                             {
                                 $aAnswers[$pos_answer->PossibleID] = $pos_answer->Answer;
                             }
+                            // add question to the form
                             $cForminputs->addMultipleChoiceQuestion($question->QuestionID, $question->Question, $aAnswers, $selected, $selectedID, $disabled);
                         }
                     }
-                    else
+                    else // open question
                     {
                         $answer = $cQuestion->getAnswer($measurementID, $question->QuestionID, $userID);
                         $selected = "";
                         $selectedID = null;
+                        // check if user already provided an answer
                         if (!is_null($answer))
                         {
                             $selected = $answer->Answer;
                             $selectedID = $answer->AnswerID;
                         }
+                        // add open question to the form
                         $cForminputs->addOpenQuestion($question->QuestionID, $question->Question, $selected, $selectedID, $disabled);
                     }
                 }
@@ -360,7 +466,7 @@ class LayoutClient extends Layout
                 $formbody = $cForminputs->createFormBody();
             }
 
-
+            // show questionlist
             $content = '<div class="row">
                 <div class="col-md-12">
                     <div class="well">

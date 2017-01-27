@@ -44,9 +44,9 @@ class Role extends DAL
     public function getRoleByUserID($userID)
     {
         $sql = "SELECT b.Role_name
-				FROM USER_ROLE a, ROLE b
-				WHERE a.UserID = :userid
-				AND a.RoleID = b.RoleID";
+                FROM USER_ROLE a, ROLE b
+                WHERE a.UserID = :userid
+                AND a.RoleID = b.RoleID";
 
         $result = $this->query($sql, array(
             ":userid" => array(
